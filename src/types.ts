@@ -18,7 +18,7 @@ export const getGamePhase = (status: GameStatus): GamePhase =>
 // Game-Specific Types
 // ============================================================================
 
-export type PlayerPosition = { x: number }; // 0-9 for 10 columns
+export type PlayerPosition = { x: number }; // pixel position 0-800
 export type FallingLetter = {
   id: string;
   letter: string;

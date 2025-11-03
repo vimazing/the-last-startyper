@@ -21,11 +21,12 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     if (currentTime - lastSpawnRef.current > SPAWN_INTERVAL && lettersRef.current.length < MAX_ACTIVE_LETTERS) {
       const randomLetter = String.fromCharCode(65 + Math.floor(Math.random() * 26)); // A-Z
       const randomX = Math.random() * 800;
+      const randomY = Math.random() * 150; // Between 0-150 (top half of screen)
       const newLetter: FallingLetter = {
         id: `${currentTime}-${randomX}`,
         letter: randomLetter,
         x: randomX,
-        y: 0,
+        y: randomY,
       };
       lettersRef.current.push(newLetter);
       lastSpawnRef.current = currentTime;

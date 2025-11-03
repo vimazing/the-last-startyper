@@ -36,9 +36,11 @@ export function useBoard() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Draw spaceship at player position
-    const spaceshipX = (playerPosition.x / 10) * CANVAS_WIDTH + CANVAS_WIDTH / 20;
+    // Draw spaceship at player position (already in pixels)
+    const spaceshipX = playerPosition.x;
     const spaceshipY = SPACESHIP_Y;
+    
+    console.log('Rendering spaceship at X:', spaceshipX);
 
     // Spaceship body (triangle pointing up)
     ctx.fillStyle = "#00ff00";

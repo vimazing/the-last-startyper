@@ -1,21 +1,27 @@
-import { useState } from "react";
-import type { PlayerPosition } from "../types";
+import { useRef } from "react";
 
-const BOARD_WIDTH = 10; // 10 columns
-const START_POSITION = 4; // Start at center (column 4-5)
+const CANVAS_WIDTH = 800;
+const START_PIXEL_X = CANVAS_WIDTH / 2; // Start at center (400px)
+const MOVEMENT_DURATION_MS = 100; // Time to reach target regardless of distance
 
 export function useCursor() {
-  const [position, setPosition] = useState<PlayerPosition>({ x: START_POSITION });
+  const pixelXRef = useRef<number>(START_PIXEL_X);
+  const targetXRef = useRef<number>(START_PIXEL_X);
+  const startXRef = useRef<number>(START_PIXEL_X);
+  const movementStartTimeRef = useRef<number>(0);
 
   const moveLeft = (count: number = 1) => {
-    setPosition(p => ({ x: Math.max(0, p.x - count) }));
+    const newX = Math.max(0, pixelXRef.current - (count * 80));
+    pixelXRef.current = newX;
+    targetXRef.current = newX;
   };
 
   const moveRight = (count: number = 1) => {
-    setPosition(p => ({ x: Math.min(BOARD_WIDTH - 1, p.x + count) }));
+    const newX = Math.min(CANVAS_WIDTH, pixelXRef.current + (count * 80));
+    pixelXRef.current = newX;
+    targetXRef.current = newX;
   };
 
-  // Typing game: hjkl only moves left/right, not up/down
   const moveUp = () => {
     // No vertical movement in typing game
   };
@@ -25,11 +31,15 @@ export function useCursor() {
   };
 
   const moveToStart = () => {
-    setPosition({ x: 0 });
+    const newX = 0;
+    pixelXRef.current = newX;
+    targetXRef.current = newX;
   };
 
   const moveToEnd = () => {
-    setPosition({ x: BOARD_WIDTH - 1 });
+    const newX = CANVAS_WIDTH;
+    pixelXRef.current = newX;
+    targetXRef.current = newX;
   };
 
   const moveToTop = () => {
@@ -44,8 +54,39 @@ export function useCursor() {
     // TODO: Implement repeat for typing game
   };
 
+  const setTargetX = (pixelX: number) => {
+    if (targetXRef.current !== pixelX) {
+      startXRef.current = pixelXRef.current;
+      targetXRef.current = pixelX;
+      movementStartTimeRef.current = performance.now();
+    }
+  };
+
+  const moveTowardTarget = (_deltaTime: number) => {
+    const targetPixelX = targetXRef.current;
+    const startPixelX = startXRef.current;
+    const currentPixelX = pixelXRef.current;
+    
+    if (currentPixelX === targetPixelX) {
+      return;
+    }
+
+    const elapsedTime = performance.now() - movementStartTimeRef.current;
+    const progress = Math.min(elapsedTime / MOVEMENT_DURATION_MS, 1);
+    
+    const newX = startPixelX + (targetPixelX - startPixelX) * progress;
+    pixelXRef.current = newX;
+
+    console.log('moveTowardTarget:', { currentPixelX, targetPixelX, progress, newX });
+
+    if (progress >= 1) {
+      pixelXRef.current = targetPixelX;
+      console.log('Reached target:', targetPixelX);
+    }
+  };
+
   return {
-    position: () => position,
+    position: () => ({ x: pixelXRef.current }),
     mode: () => 'normal' as const,
     moveLeft,
     moveRight,
@@ -56,6 +97,8 @@ export function useCursor() {
     moveToTop,
     moveToBottom,
     repeatLastMotion,
+    setTargetX,
+    moveTowardTarget,
   };
 }
 
