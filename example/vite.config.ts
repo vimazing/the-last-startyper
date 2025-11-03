@@ -11,7 +11,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      "@vimazing/vim-snake": libSource, // use source during dev
+      "@vimazing/typing-chud": libSource, // use source during dev
     },
   },
   server: {
