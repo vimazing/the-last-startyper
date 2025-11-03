@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { GameManager, GameOptions, KeyLogEntry } from "../types";
 import { useBoard } from "../useBoard";
 import { useCursor } from "../useCursor";
@@ -20,6 +20,11 @@ export function useGame(
   const renderBoardWrapped = () => {
     boardManager.renderBoard(cursorManager.position());
   };
+
+  // Initial render on mount
+  useEffect(() => {
+    renderBoardWrapped();
+  }, []);
 
   const gameManager: GameManager = {
     containerRef: boardManager.containerRef,

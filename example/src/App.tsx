@@ -1,26 +1,10 @@
-import { useEffect, useRef } from "react";
 import { useGame } from "@vimazing/typing-chud";
 import "@vimazing/typing-chud/game.css";
-import type { GameManager } from "@vimazing/typing-chud";
 import { useKeyBindings } from "./useKeyBindings";
-import { useMounted } from "./useMounted";
 
 function App() {
   const gameManager = useGame({}, useKeyBindings);
-  const { containerRef, gameStatus, scoreManager, renderBoard, cursor } = gameManager;
-  const gameManagerRef = useRef<GameManager>(gameManager);
-  const [mounted] = useMounted();
-
-  useEffect(() => {
-    gameManagerRef.current = gameManager;
-  }, [gameManager]);
-
-  // Re-render board when cursor position changes
-  useEffect(() => {
-    if (mounted) {
-      renderBoard();
-    }
-  }, [cursor.position(), renderBoard, mounted]);
+  const { containerRef, gameStatus, scoreManager } = gameManager;
 
   const formatTime = (ms: number) => {
     const seconds = Math.floor(ms / 1000);
