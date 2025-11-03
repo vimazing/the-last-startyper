@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import type { GameStatus, FallingLetter } from "../types";
+import type { GameStatus, FallingLetter, ShipState } from "../types";
 
 const LETTER_SPEED = 100; // pixels per second
 const SPAWN_INTERVAL = 1000; // ms between letter spawns
@@ -7,13 +7,19 @@ const MAX_ACTIVE_LETTERS = 1; // Only one letter on screen at a time
 const MARGIN_LEFT = 50; // Safe margin from left edge
 const MARGIN_RIGHT = 50; // Safe margin from right edge
 const CANVAS_WIDTH = 800;
+const SPACESHIP_Y = 600 - 40; // Position of the ship on canvas
+const COLLISION_THRESHOLD = 30; // Distance to trigger collision
 
 export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: FallingLetter[]) => void) {
   const [gameStatus, setGameStatus] = useState<GameStatus>("waiting");
+  const [shipState, setShipState] = useState<ShipState>("normal");
+  const [shipExplosionTime, setShipExplosionTime] = useState(0);
   const gameLoopRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
   const lettersRef = useRef<FallingLetter[]>([]);
   const lastSpawnRef = useRef<number>(0);
+  const playerXRef = useRef<number>(CANVAS_WIDTH / 2);
+  const onGameLoopTickRef = useRef(onGameLoopTick);
 
   // Game loop
   const gameLoop = useCallback((currentTime: number) => {
@@ -42,17 +48,41 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
       letter.y += (LETTER_SPEED * deltaTime) / 1000;
     });
 
+    // Check for collisions with ship
+    lettersRef.current.forEach(letter => {
+      if (letter.state === 'normal') {
+        const letterY = letter.y;
+        const distanceFromShip = Math.abs(letterY - SPACESHIP_Y);
+        const horizontalDistance = Math.abs(letter.x - playerXRef.current);
+
+        if (distanceFromShip < COLLISION_THRESHOLD && horizontalDistance < 30) {
+          // Collision detected
+          letter.state = 'exploding';
+          letter.stateStartTime = currentTime;
+          setShipState('exploding');
+          setShipExplosionTime(performance.now());
+
+          // Clear letters and reset spawn timer after explosion animation
+          setTimeout(() => {
+            lettersRef.current = [];
+            lastSpawnRef.current = performance.now();
+            setShipState('normal');
+          }, 300);
+        }
+      }
+    });
+
     // Remove letters that went off screen
     lettersRef.current = lettersRef.current.filter(letter => letter.y < 600);
 
     // Call tick callback if provided
-    if (onGameLoopTick) {
-      onGameLoopTick(deltaTime, lettersRef.current);
+    if (onGameLoopTickRef.current) {
+      onGameLoopTickRef.current(deltaTime, lettersRef.current);
     }
 
     // Continue loop
     gameLoopRef.current = requestAnimationFrame(gameLoop);
-  }, [onGameLoopTick]);
+  }, []);
 
   const startGame = useCallback(() => {
     lastFrameTimeRef.current = performance.now();
@@ -95,12 +125,24 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     }
   }, []);
 
+  const updatePlayerX = useCallback((x: number) => {
+    playerXRef.current = x;
+  }, []);
+
+  const setGameLoopCallback = useCallback((callback: (deltaTime: number, letters: FallingLetter[]) => void) => {
+    onGameLoopTickRef.current = callback;
+  }, []);
+
   return {
     gameStatus,
     setGameStatus,
     startGame,
     quitGame,
     handleTypedLetter,
+    shipState,
+    shipExplosionTime,
+    updatePlayerX,
+    setGameLoopCallback,
   };
 }
 

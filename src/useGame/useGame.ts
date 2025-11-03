@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { GameManager, GameOptions, KeyLogEntry } from "../types";
+import type { GameManager, GameOptions, KeyLogEntry, FallingLetter } from "../types";
 import { useBoard } from "../useBoard";
 import { useCursor } from "../useCursor";
 import { useGameStatus } from "../useGameStatus";
@@ -13,14 +13,18 @@ export function useGame(
 
   const boardManager = useBoard();
   const cursorManager = useCursor();
+  const gameStatusManager = useGameStatus();
 
   // Wrap renderBoard to include player position
   const renderBoardWrapped = (letters: any = []) => {
-    boardManager.renderBoard(cursorManager.position(), letters);
+    boardManager.renderBoard(cursorManager.position(), letters, gameStatusManager.shipState, gameStatusManager.shipExplosionTime);
   };
 
   // Game loop tick handler
-  const handleGameLoopTick = (deltaTime: number, letters: any) => {
+  const handleGameLoopTick = (deltaTime: number, letters: FallingLetter[]) => {
+    const playerPos = cursorManager.position();
+    gameStatusManager.updatePlayerX(playerPos.x);
+
     if (letters.length > 0) {
       const letter = letters[0];
       cursorManager.setTargetX(letter.x);
@@ -30,13 +34,17 @@ export function useGame(
     renderBoardWrapped(letters);
   };
 
-  const gameStatusManager = useGameStatus(handleGameLoopTick);
-  const scoreManager = useScore(gameStatusManager);
+  // Set the game loop callback
+  useEffect(() => {
+    gameStatusManager.setGameLoopCallback(handleGameLoopTick);
+  }, [gameStatusManager, cursorManager, boardManager]);
 
   // Initial render on mount
   useEffect(() => {
     renderBoardWrapped();
   }, []);
+
+  const scoreManager = useScore(gameStatusManager);
 
   const gameManager: GameManager = {
     containerRef: boardManager.containerRef,

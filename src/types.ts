@@ -21,6 +21,7 @@ export const getGamePhase = (status: GameStatus): GamePhase =>
 export type PlayerPosition = { x: number }; // pixel position 0-800
 
 export type LetterState = 'normal' | 'wrong' | 'exploding';
+export type ShipState = 'normal' | 'exploding';
 
 export type FallingLetter = {
   id: string;
@@ -95,6 +96,11 @@ export type GameStatusManager = {
   level: number;
   score: number;
   togglePause: () => void;
+  shipState: ShipState;
+  shipExplosionTime: number;
+  updatePlayerX: (x: number) => void;
+  handleTypedLetter: (letter: string) => void;
+  setGameLoopCallback: (callback: (deltaTime: number, letters: FallingLetter[]) => void) => void;
 };
 
 // ============================================================================
