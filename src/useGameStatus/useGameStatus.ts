@@ -14,6 +14,10 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
   const [gameStatus, setGameStatus] = useState<GameStatus>("waiting");
   const [shipState, setShipState] = useState<ShipState>("normal");
   const [shipExplosionTime, setShipExplosionTime] = useState(0);
+  const [score, setScore] = useState(0);
+  const [correct, setCorrect] = useState(0);
+  const [missed, setMissed] = useState(0);
+  const [deaths, setDeaths] = useState(0);
   const gameLoopRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
   const lettersRef = useRef<FallingLetter[]>([]);
@@ -61,6 +65,7 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
           letter.stateStartTime = currentTime;
           setShipState('exploding');
           setShipExplosionTime(performance.now());
+          setDeaths(prev => prev + 1);
 
           // Clear letters and reset spawn timer after explosion animation
           setTimeout(() => {
@@ -88,6 +93,10 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     lastFrameTimeRef.current = performance.now();
     lastSpawnRef.current = performance.now();
     lettersRef.current = [];
+    setScore(0);
+    setCorrect(0);
+    setMissed(0);
+    setDeaths(0);
     setGameStatus("started");
     gameLoopRef.current = requestAnimationFrame(gameLoop);
   }, [gameLoop]);
@@ -108,6 +117,8 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     if (typedLetter.toUpperCase() === currentLetter.letter) {
       currentLetter.state = 'exploding';
       currentLetter.stateStartTime = performance.now();
+      setScore(prev => prev + 1);
+      setCorrect(prev => prev + 1);
       
       setTimeout(() => {
         lettersRef.current = [];
@@ -116,6 +127,8 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     } else {
       currentLetter.state = 'wrong';
       currentLetter.stateStartTime = performance.now();
+      setScore(prev => Math.max(0, prev - 1));
+      setMissed(prev => prev + 1);
       
       setTimeout(() => {
         if (currentLetter.state === 'wrong') {
@@ -133,6 +146,20 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     onGameLoopTickRef.current = callback;
   }, []);
 
+  const addCorrect = useCallback(() => {
+    setScore(prev => prev + 1);
+    setCorrect(prev => prev + 1);
+  }, []);
+
+  const addMissed = useCallback(() => {
+    setScore(prev => Math.max(0, prev - 1));
+    setMissed(prev => prev + 1);
+  }, []);
+
+  const addDeath = useCallback(() => {
+    setDeaths(prev => prev + 1);
+  }, []);
+
   return {
     gameStatus,
     setGameStatus,
@@ -143,6 +170,13 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     shipExplosionTime,
     updatePlayerX,
     setGameLoopCallback,
+    addCorrect,
+    addMissed,
+    addDeath,
+    score,
+    correct,
+    missed,
+    deaths,
   };
 }
 

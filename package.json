@@ -46,6 +46,7 @@
     "dist"
   ],
   "scripts": {
+    "dev": "cd example && bun run dev",
     "build": "tsc --outDir dist --declaration --emitDeclarationOnly false && node -e \"const fs = require('node:fs'); fs.mkdirSync('dist', { recursive: true }); fs.copyFileSync('src/game.css', 'dist/game.css'); fs.copyFileSync('package.json', 'dist/package.json');\"",
     "prepublishOnly": "npm run build"
   },

@@ -17,12 +17,30 @@ function App() {
     <div className="relative mx-auto my-4 w-fit space-y-4">
       <h1 className="text-2xl font-bold text-center">Typing Chud</h1>
 
-      <div className="flex gap-4 justify-center text-sm font-mono">
+      <div className="grid grid-cols-6 gap-2 justify-center text-sm font-mono">
         <div className="px-3 py-1 bg-muted rounded">
-          Time: {formatTime(scoreManager.timeValue)}
+          <div className="text-xs text-muted-foreground">Time</div>
+          <div className="font-bold">{formatTime(scoreManager.timeValue)}</div>
         </div>
         <div className="px-3 py-1 bg-muted rounded">
-          Keystrokes: {scoreManager.totalKeystrokes}
+          <div className="text-xs text-muted-foreground">Score</div>
+          <div className="font-bold">{scoreManager.score}</div>
+        </div>
+        <div className="px-3 py-1 bg-green-900 rounded">
+          <div className="text-xs text-green-200">Correct</div>
+          <div className="font-bold text-green-100">{scoreManager.correct}</div>
+        </div>
+        <div className="px-3 py-1 bg-yellow-900 rounded">
+          <div className="text-xs text-yellow-200">Missed</div>
+          <div className="font-bold text-yellow-100">{scoreManager.missed}</div>
+        </div>
+        <div className="px-3 py-1 bg-red-900 rounded">
+          <div className="text-xs text-red-200">Deaths</div>
+          <div className="font-bold text-red-100">{scoreManager.deaths}</div>
+        </div>
+        <div className="px-3 py-1 bg-muted rounded">
+          <div className="text-xs text-muted-foreground">Keystrokes</div>
+          <div className="font-bold">{scoreManager.totalKeystrokes}</div>
         </div>
       </div>
 

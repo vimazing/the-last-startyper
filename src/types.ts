@@ -82,6 +82,10 @@ export type CursorManager = {
 export type ScoreManager = {
   timeValue: number;
   totalKeystrokes: number;
+  score: number;
+  correct: number;
+  missed: number;
+  deaths: number;
 };
 
 // ============================================================================
@@ -94,13 +98,18 @@ export type GameStatusManager = {
   startGame: () => void;
   quitGame: () => void;
   level: number;
-  score: number;
-  togglePause: () => void;
   shipState: ShipState;
   shipExplosionTime: number;
   updatePlayerX: (x: number) => void;
   handleTypedLetter: (letter: string) => void;
   setGameLoopCallback: (callback: (deltaTime: number, letters: FallingLetter[]) => void) => void;
+  addCorrect: () => void;
+  addMissed: () => void;
+  addDeath: () => void;
+  score: number;
+  correct: number;
+  missed: number;
+  deaths: number;
 };
 
 // ============================================================================

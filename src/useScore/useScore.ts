@@ -16,7 +16,11 @@ export function useScore(gameStatusManager: any): ScoreManager {
 
   return {
     timeValue,
-    totalKeystrokes: 0, // TODO: Track keystrokes
+    totalKeystrokes: 0, // TODO: Track keystrokes from keyboard input
+    score: gameStatusManager.score,
+    correct: gameStatusManager.correct,
+    missed: gameStatusManager.missed,
+    deaths: gameStatusManager.deaths,
   };
 }
 
