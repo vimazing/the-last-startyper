@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    /* === Environment === */
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+
+    /* === Bundler / Vite === */
+    "noEmit": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "types": ["vite/client"],
+
+    /* === Code Style & Safety === */
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+
+    /* === Module Behavior === */
+    "allowImportingTsExtensions": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* === Path aliases (optional) === */
+    "baseUrl": ".",
+    "paths": {
+      "@vimazing/vim-snake": ["../src/index.ts"],
+      "@vimazing/vim-snake/*": ["../src/*"]
+    }
+  },
+  "include": ["src", "vite.config.ts", "global.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}

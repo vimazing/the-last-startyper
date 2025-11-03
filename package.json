@@ -1,0 +1,60 @@
+{
+  "name": "@vimazing/typing-chud",
+  "version": "0.1.0",
+  "description": "TODO: Game description",
+  "author": "André Padez <andre.padez@gmail.com>",
+  "keywords": [
+    "vim",
+    "react",
+    "hooks",
+    "game",
+    "typescript",
+    "vimazing"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vimazing/typing-chud.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vimazing/typing-chud/issues"
+  },
+  "homepage": "https://github.com/vimazing/typing-chud#readme",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./useGame": {
+      "import": "./dist/useGame/index.js",
+      "types": "./dist/useGame/index.d.ts"
+    },
+    "./useScore": {
+      "import": "./dist/useScore/index.js",
+      "types": "./dist/useScore/index.d.ts"
+    },
+    "./*": {
+      "import": "./dist/*.js",
+      "types": "./dist/*.d.ts"
+    },
+    "./*.css": "./dist/*.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --outDir dist --declaration --emitDeclarationOnly false && node -e \"const fs = require('node:fs'); fs.mkdirSync('dist', { recursive: true }); fs.copyFileSync('src/game.css', 'dist/game.css'); fs.copyFileSync('package.json', 'dist/package.json');\"",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.2",
+    "@types/react": "^19.2.2",
+    "typescript": "~5.9.3"
+  }
+}

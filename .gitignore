@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+bower_components/
+
+# Build outputs
+dist/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# Coverage & reports
+coverage/
+*.lcov
+
+# Caches
+.vite/
+.next/
+.nuxt/
+.svelte-kit/
+.angular/
+.cache/
+.parcel-cache/
+.turbo/
+.eslintcache
+.stylelintcache
+
+# IDE & editor
+.vscode/
+.idea/
+*.sw?
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+.env.*
+
+# Misc
+*.pem
+*.pfx
+*.p12
+*.crt
+*.key
+*.cer
+
+# Bun
+.bun/

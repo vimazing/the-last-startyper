@@ -1,0 +1,12 @@
+src/
+example/
+node_modules/
+tsconfig.json
+global.d.ts
+bun.lockb
+*.log
+.git
+.gitignore
+.vscode/
+.idea/
+
