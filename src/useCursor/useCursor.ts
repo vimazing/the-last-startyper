@@ -77,11 +77,8 @@ export function useCursor() {
     const newX = startPixelX + (targetPixelX - startPixelX) * progress;
     pixelXRef.current = newX;
 
-    console.log('moveTowardTarget:', { currentPixelX, targetPixelX, progress, newX });
-
     if (progress >= 1) {
       pixelXRef.current = targetPixelX;
-      console.log('Reached target:', targetPixelX);
     }
   };
 

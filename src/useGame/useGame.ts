@@ -21,16 +21,12 @@ export function useGame(
 
   // Game loop tick handler
   const handleGameLoopTick = (deltaTime: number, letters: any) => {
-    // If a letter just spawned, move ship to it
     if (letters.length > 0) {
       const letter = letters[0];
-      console.log('Setting target to:', letter.x);
       cursorManager.setTargetX(letter.x);
     }
     
-    // Move spaceship towards target
     cursorManager.moveTowardTarget(deltaTime);
-    
     renderBoardWrapped(letters);
   };
 
