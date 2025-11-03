@@ -4,6 +4,9 @@ import type { GameStatus, FallingLetter } from "../types";
 const LETTER_SPEED = 100; // pixels per second
 const SPAWN_INTERVAL = 1000; // ms between letter spawns
 const MAX_ACTIVE_LETTERS = 1; // Only one letter on screen at a time
+const MARGIN_LEFT = 50; // Safe margin from left edge
+const MARGIN_RIGHT = 50; // Safe margin from right edge
+const CANVAS_WIDTH = 800;
 
 export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: FallingLetter[]) => void) {
   const [gameStatus, setGameStatus] = useState<GameStatus>("waiting");
@@ -20,13 +23,15 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     // Spawn new letter if enough time has passed and no letters active
     if (currentTime - lastSpawnRef.current > SPAWN_INTERVAL && lettersRef.current.length < MAX_ACTIVE_LETTERS) {
       const randomLetter = String.fromCharCode(65 + Math.floor(Math.random() * 26)); // A-Z
-      const randomX = Math.random() * 800;
+      const spawnWidth = CANVAS_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
+      const randomX = MARGIN_LEFT + Math.random() * spawnWidth;
       const randomY = Math.random() * 150; // Between 0-150 (top half of screen)
       const newLetter: FallingLetter = {
         id: `${currentTime}-${randomX}`,
         letter: randomLetter,
         x: randomX,
         y: randomY,
+        state: 'normal',
       };
       lettersRef.current.push(newLetter);
       lastSpawnRef.current = currentTime;
@@ -65,11 +70,37 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     }
   }, []);
 
+  const handleTypedLetter = useCallback((typedLetter: string) => {
+    if (lettersRef.current.length === 0) return;
+    
+    const currentLetter = lettersRef.current[0];
+    
+    if (typedLetter.toUpperCase() === currentLetter.letter) {
+      currentLetter.state = 'exploding';
+      currentLetter.stateStartTime = performance.now();
+      
+      setTimeout(() => {
+        lettersRef.current = [];
+        lastSpawnRef.current = 0;
+      }, 300);
+    } else {
+      currentLetter.state = 'wrong';
+      currentLetter.stateStartTime = performance.now();
+      
+      setTimeout(() => {
+        if (currentLetter.state === 'wrong') {
+          currentLetter.state = 'normal';
+        }
+      }, 200);
+    }
+  }, []);
+
   return {
     gameStatus,
     setGameStatus,
     startGame,
     quitGame,
+    handleTypedLetter,
   };
 }
 

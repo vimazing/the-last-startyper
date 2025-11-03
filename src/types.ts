@@ -19,11 +19,16 @@ export const getGamePhase = (status: GameStatus): GamePhase =>
 // ============================================================================
 
 export type PlayerPosition = { x: number }; // pixel position 0-800
+
+export type LetterState = 'normal' | 'wrong' | 'exploding';
+
 export type FallingLetter = {
   id: string;
   letter: string;
   x: number; // 0-800 pixel position
   y: number; // 0-600 pixel position
+  state: LetterState;
+  stateStartTime?: number; // For animation timing
 };
 
 // ============================================================================
@@ -126,7 +131,8 @@ export type GameManager = {
   clearKeyLog: () => void;
   getKeyLog: () => KeyLogEntry[];
 
-  // TODO: Add game-specific additions
+  // Game-specific
+  handleTypedLetter: (letter: string) => void;
 };
 
 // ============================================================================

@@ -132,13 +132,54 @@ export function useBoard() {
     ctx.closePath();
     ctx.fill();
 
-    // Draw falling letters
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "24px monospace";
+    // Draw falling letters with state effects
+    ctx.font = "bold 32px monospace";
     ctx.textAlign = "center";
-    ctx.textBaseline = "top";
+    ctx.textBaseline = "middle";
+    
     letters.forEach((letter: any) => {
-      ctx.fillText(letter.letter, letter.x, letter.y);
+      if (letter.state === 'wrong') {
+        // Red glow flash
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = "#ff0000";
+        ctx.fillStyle = "#ff4444";
+        ctx.fillText(letter.letter, letter.x, letter.y);
+        ctx.shadowBlur = 0;
+      } else if (letter.state === 'exploding') {
+        // Explosion effect
+        const elapsed = performance.now() - (letter.stateStartTime || 0);
+        const progress = Math.min(elapsed / 300, 1);
+        const scale = 1 + progress * 2;
+        const opacity = 1 - progress;
+        
+        ctx.save();
+        ctx.translate(letter.x, letter.y);
+        ctx.scale(scale, scale);
+        ctx.globalAlpha = opacity;
+        
+        // Explosion particles
+        for (let i = 0; i < 8; i++) {
+          const angle = (i / 8) * Math.PI * 2;
+          const distance = progress * 30;
+          const px = Math.cos(angle) * distance;
+          const py = Math.sin(angle) * distance;
+          
+          ctx.fillStyle = i % 2 === 0 ? "#ffff00" : "#ff6600";
+          ctx.beginPath();
+          ctx.arc(px, py, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        
+        // Letter fading
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(letter.letter, 0, 0);
+        
+        ctx.restore();
+      } else {
+        // Normal state
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(letter.letter, letter.x, letter.y);
+      }
     });
   };
 

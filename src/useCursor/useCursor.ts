@@ -1,6 +1,8 @@
 import { useRef } from "react";
 
 const CANVAS_WIDTH = 800;
+const MARGIN_LEFT = 50;
+const MARGIN_RIGHT = 50;
 const START_PIXEL_X = CANVAS_WIDTH / 2; // Start at center (400px)
 const MOVEMENT_DURATION_MS = 100; // Time to reach target regardless of distance
 
@@ -11,13 +13,13 @@ export function useCursor() {
   const movementStartTimeRef = useRef<number>(0);
 
   const moveLeft = (count: number = 1) => {
-    const newX = Math.max(0, pixelXRef.current - (count * 80));
+    const newX = Math.max(MARGIN_LEFT, pixelXRef.current - (count * 80));
     pixelXRef.current = newX;
     targetXRef.current = newX;
   };
 
   const moveRight = (count: number = 1) => {
-    const newX = Math.min(CANVAS_WIDTH, pixelXRef.current + (count * 80));
+    const newX = Math.min(CANVAS_WIDTH - MARGIN_RIGHT, pixelXRef.current + (count * 80));
     pixelXRef.current = newX;
     targetXRef.current = newX;
   };
@@ -31,13 +33,13 @@ export function useCursor() {
   };
 
   const moveToStart = () => {
-    const newX = 0;
+    const newX = MARGIN_LEFT;
     pixelXRef.current = newX;
     targetXRef.current = newX;
   };
 
   const moveToEnd = () => {
-    const newX = CANVAS_WIDTH;
+    const newX = CANVAS_WIDTH - MARGIN_RIGHT;
     pixelXRef.current = newX;
     targetXRef.current = newX;
   };

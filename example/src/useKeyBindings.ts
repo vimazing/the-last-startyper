@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import type { GameManager } from "../../src";
 
 export const useKeyBindings = (gameManager: GameManager) => {
-  const { gameStatus, renderBoard, startGame, quitGame, clearKeyLog } = gameManager;
+  const { gameStatus, renderBoard, startGame, quitGame, clearKeyLog, handleTypedLetter } = gameManager;
 
   useEffect(() => {
     const handler = (ev: KeyboardEvent) => {
@@ -29,10 +29,17 @@ export const useKeyBindings = (gameManager: GameManager) => {
         quitGame();
         return;
       }
+
+      // handle letter typing during game
+      if (gameStatus === "started") {
+        if (ev.key.length === 1 && /[a-zA-Z]/.test(ev.key)) {
+          handleTypedLetter(ev.key);
+        }
+      }
     };
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [gameStatus]);
+  }, [gameStatus, handleTypedLetter]);
 };
 

@@ -50,6 +50,7 @@ export function useGame(
     keyLog,
     clearKeyLog: () => setKeyLog([]),
     getKeyLog: () => [...keyLog],
+    handleTypedLetter: gameStatusManager.handleTypedLetter,
   };
 
   if (typeof platformHook === 'function') {
