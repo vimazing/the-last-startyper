@@ -25,7 +25,7 @@ export const useKeyBindings = (gameManager: GameManager) => {
       if (gameStatus === "waiting") return;
 
       // quit
-      if (ev.key === "q" || ev.key === "Q") {
+      if (ev.key === "Escape") {
         quitGame();
         return;
       }

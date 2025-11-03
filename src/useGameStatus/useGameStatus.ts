@@ -3,6 +3,7 @@ import type { GameStatus, FallingLetter } from "../types";
 
 const LETTER_SPEED = 100; // pixels per second
 const SPAWN_INTERVAL = 1000; // ms between letter spawns
+const MAX_ACTIVE_LETTERS = 1; // Only one letter on screen at a time
 
 export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: FallingLetter[]) => void) {
   const [gameStatus, setGameStatus] = useState<GameStatus>("waiting");
@@ -16,8 +17,8 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     const deltaTime = currentTime - lastFrameTimeRef.current;
     lastFrameTimeRef.current = currentTime;
 
-    // Spawn new letter if enough time has passed
-    if (currentTime - lastSpawnRef.current > SPAWN_INTERVAL) {
+    // Spawn new letter if enough time has passed and no letters active
+    if (currentTime - lastSpawnRef.current > SPAWN_INTERVAL && lettersRef.current.length < MAX_ACTIVE_LETTERS) {
       const randomLetter = String.fromCharCode(65 + Math.floor(Math.random() * 26)); // A-Z
       const randomX = Math.random() * 800;
       const newLetter: FallingLetter = {

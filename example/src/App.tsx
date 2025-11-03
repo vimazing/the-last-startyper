@@ -30,7 +30,7 @@ function App() {
 
       <div className="text-center text-sm text-muted-foreground">
         {gameStatus === "waiting" && <p>Press <kbd className="px-2 py-1 bg-muted rounded">space</kbd> to start</p>}
-        {gameStatus === "started" && <p>Game running...</p>}
+        {gameStatus === "started" && <p>Type letters • Press <kbd className="px-2 py-1 bg-muted rounded">esc</kbd> to quit</p>}
         {gameStatus === "game-over" && <p>Game Over! Press <kbd className="px-2 py-1 bg-muted rounded">space</kbd> to restart</p>}
         {gameStatus === "game-won" && <p>You Won! Press <kbd className="px-2 py-1 bg-muted rounded">space</kbd> to restart</p>}
       </div>
