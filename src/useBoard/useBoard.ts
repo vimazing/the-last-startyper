@@ -25,7 +25,7 @@ export function useBoard() {
     canvasRef.current = canvas;
   }, []);
 
-  const renderBoard = (playerPosition: PlayerPosition) => {
+  const renderBoard = (playerPosition: PlayerPosition, letters: any = []) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -72,6 +72,15 @@ export function useBoard() {
     ctx.lineTo(spaceshipX + 8, spaceshipY + 15);
     ctx.closePath();
     ctx.fill();
+
+    // Draw falling letters
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "24px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    letters.forEach((letter: any) => {
+      ctx.fillText(letter.letter, letter.x, letter.y);
+    });
   };
 
   return {

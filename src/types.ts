@@ -19,11 +19,11 @@ export const getGamePhase = (status: GameStatus): GamePhase =>
 // ============================================================================
 
 export type PlayerPosition = { x: number }; // 0-9 for 10 columns
-export type Word = {
+export type FallingLetter = {
   id: string;
-  text: string;
-  x: number; // 0-9 column position
-  y: number; // vertical position (0 = top, increases downward)
+  letter: string;
+  x: number; // 0-800 pixel position
+  y: number; // 0-600 pixel position
 };
 
 // ============================================================================
