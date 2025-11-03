@@ -16,9 +16,14 @@ export function useGame(
   const gameStatusManager = useGameStatus();
   const scoreManager = useScore(gameStatusManager);
 
+  // Wrap renderBoard to include player position
+  const renderBoardWrapped = () => {
+    boardManager.renderBoard(cursorManager.position());
+  };
+
   const gameManager: GameManager = {
     containerRef: boardManager.containerRef,
-    renderBoard: boardManager.renderBoard,
+    renderBoard: renderBoardWrapped,
     gameStatus: gameStatusManager.gameStatus,
     setGameStatus: gameStatusManager.setGameStatus,
     startGame: gameStatusManager.startGame,

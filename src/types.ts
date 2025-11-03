@@ -15,10 +15,16 @@ export const getGamePhase = (status: GameStatus): GamePhase =>
   status === 'waiting' ? 'idle' : 'playing';
 
 // ============================================================================
-// Game-Specific Types (to be defined)
+// Game-Specific Types
 // ============================================================================
 
-// TODO: Define game-specific types here
+export type PlayerPosition = { x: number }; // 0-9 for 10 columns
+export type Word = {
+  id: string;
+  text: string;
+  x: number; // 0-9 column position
+  y: number; // vertical position (0 = top, increases downward)
+};
 
 // ============================================================================
 // Input & Key Tracking
@@ -45,10 +51,8 @@ export type BoardManager = {
 
 export type CursorMode = 'normal';
 
-export type Coord = { row: number; col: number };
-
 export type CursorManager = {
-  position: () => Coord;
+  position: () => PlayerPosition;
   mode: () => CursorMode;
 
   // VIM-style motions (required by Unified API)

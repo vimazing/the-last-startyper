@@ -1,43 +1,47 @@
 import { useState } from "react";
-import type { Coord } from "../types";
+import type { PlayerPosition } from "../types";
+
+const BOARD_WIDTH = 10; // 10 columns
+const START_POSITION = 4; // Start at center (column 4-5)
 
 export function useCursor() {
-  const [position] = useState<Coord>({ row: 0, col: 0 });
+  const [position, setPosition] = useState<PlayerPosition>({ x: START_POSITION });
 
-  const moveLeft = (_count?: number) => {
-    // TODO: Implement movement
+  const moveLeft = (count: number = 1) => {
+    setPosition(p => ({ x: Math.max(0, p.x - count) }));
   };
 
-  const moveRight = (_count?: number) => {
-    // TODO: Implement movement
+  const moveRight = (count: number = 1) => {
+    setPosition(p => ({ x: Math.min(BOARD_WIDTH - 1, p.x + count) }));
   };
 
-  const moveUp = (_count?: number) => {
-    // TODO: Implement movement
+  // Typing game: hjkl only moves left/right, not up/down
+  const moveUp = () => {
+    // No vertical movement in typing game
   };
 
-  const moveDown = (_count?: number) => {
-    // TODO: Implement movement
+  const moveDown = () => {
+    // No vertical movement in typing game
   };
 
   const moveToStart = () => {
-    // TODO: Implement anchor motion
+    setPosition({ x: 0 });
   };
 
   const moveToEnd = () => {
-    // TODO: Implement anchor motion
+    setPosition({ x: BOARD_WIDTH - 1 });
   };
 
   const moveToTop = () => {
-    // TODO: Implement anchor motion
+    // No vertical movement in typing game
   };
 
   const moveToBottom = () => {
-    // TODO: Implement anchor motion
+    // No vertical movement in typing game
   };
 
   const repeatLastMotion = () => {
-    // TODO: Implement repeat
+    // TODO: Implement repeat for typing game
   };
 
   return {
