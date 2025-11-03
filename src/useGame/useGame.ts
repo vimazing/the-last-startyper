@@ -6,14 +6,15 @@ import { useGameStatus } from "../useGameStatus";
 import { useScore } from "../useScore";
 
 export function useGame(
-  _options?: GameOptions,
+  options?: GameOptions,
   platformHook?: unknown
 ): GameManager {
   const [keyLog, setKeyLog] = useState<KeyLogEntry[]>([]);
+  const gameMode = options?.gameMode ?? 'letters';
 
   const boardManager = useBoard();
   const cursorManager = useCursor();
-  const gameStatusManager = useGameStatus();
+  const gameStatusManager = useGameStatus(undefined, gameMode);
 
   // Wrap renderBoard to include player position
   const renderBoardWrapped = (letters: any = []) => {

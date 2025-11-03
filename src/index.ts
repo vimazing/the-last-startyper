@@ -5,4 +5,5 @@ export * from './useBoard';
 export * from './useScore';
 export * from './types';
 export * from './gameInfo';
+export * from './wordLists';
 

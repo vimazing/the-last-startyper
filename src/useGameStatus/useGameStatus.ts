@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
-import type { GameStatus, FallingLetter, ShipState } from "../types";
+import type { GameStatus, FallingLetter, ShipState, GameMode } from "../types";
+import { getRandomWord } from "../wordLists";
 
 const LETTER_SPEED = 100; // pixels per second
 const SPAWN_INTERVAL = 1000; // ms between letter spawns
@@ -10,7 +11,7 @@ const CANVAS_WIDTH = 800;
 const SPACESHIP_Y = 600 - 40; // Position of the ship on canvas
 const COLLISION_THRESHOLD = 30; // Distance to trigger collision
 
-export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: FallingLetter[]) => void) {
+export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: FallingLetter[]) => void, gameMode: GameMode = 'letters') {
   const [gameStatus, setGameStatus] = useState<GameStatus>("waiting");
   const [shipState, setShipState] = useState<ShipState>("normal");
   const [shipExplosionTime, setShipExplosionTime] = useState(0);
@@ -24,21 +25,25 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
   const lastSpawnRef = useRef<number>(0);
   const playerXRef = useRef<number>(CANVAS_WIDTH / 2);
   const onGameLoopTickRef = useRef(onGameLoopTick);
+  const gameModeRef = useRef<GameMode>(gameMode);
 
   // Game loop
   const gameLoop = useCallback((currentTime: number) => {
     const deltaTime = currentTime - lastFrameTimeRef.current;
     lastFrameTimeRef.current = currentTime;
 
-    // Spawn new letter if enough time has passed and no letters active
+    // Spawn new letter/word if enough time has passed and no letters active
     if (currentTime - lastSpawnRef.current > SPAWN_INTERVAL && lettersRef.current.length < MAX_ACTIVE_LETTERS) {
-      const randomLetter = String.fromCharCode(65 + Math.floor(Math.random() * 26)); // A-Z
+      const fullText = getRandomWord(gameModeRef.current);
+      const firstChar = fullText[0].toUpperCase();
       const spawnWidth = CANVAS_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
       const randomX = MARGIN_LEFT + Math.random() * spawnWidth;
       const randomY = Math.random() * 150; // Between 0-150 (top half of screen)
       const newLetter: FallingLetter = {
         id: `${currentTime}-${randomX}`,
-        letter: randomLetter,
+        letter: firstChar,
+        fullText: fullText.toUpperCase(),
+        charIndex: 0,
         x: randomX,
         y: randomY,
         state: 'normal',
@@ -113,17 +118,31 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     if (lettersRef.current.length === 0) return;
     
     const currentLetter = lettersRef.current[0];
-    
-    if (typedLetter.toUpperCase() === currentLetter.letter) {
-      currentLetter.state = 'exploding';
-      currentLetter.stateStartTime = performance.now();
+    const expectedChar = currentLetter.letter;
+    const isCorrect = typedLetter.toUpperCase() === expectedChar;
+
+    if (isCorrect) {
       setScore(prev => prev + 1);
       setCorrect(prev => prev + 1);
-      
-      setTimeout(() => {
-        lettersRef.current = [];
-        lastSpawnRef.current = 0;
-      }, 300);
+
+      const charIndex = (currentLetter.charIndex ?? 0) + 1;
+      const fullText = currentLetter.fullText ?? currentLetter.letter;
+
+      // Check if word is complete
+      if (charIndex >= fullText.length) {
+        // Word complete - explode and clear
+        currentLetter.state = 'exploding';
+        currentLetter.stateStartTime = performance.now();
+        
+        setTimeout(() => {
+          lettersRef.current = [];
+          lastSpawnRef.current = 0;
+        }, 300);
+      } else {
+        // More characters to type - advance to next character
+        currentLetter.charIndex = charIndex;
+        currentLetter.letter = fullText[charIndex];
+      }
     } else {
       currentLetter.state = 'wrong';
       currentLetter.stateStartTime = performance.now();

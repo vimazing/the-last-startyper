@@ -1,9 +1,11 @@
-import { useGame } from "@vimazing/typing-chud";
+import { useState } from "react";
+import { useGame, type GameMode } from "@vimazing/typing-chud";
 import "@vimazing/typing-chud/game.css";
 import { useKeyBindings } from "./useKeyBindings";
 
 function App() {
-  const gameManager = useGame({}, useKeyBindings);
+  const [gameMode, setGameMode] = useState<GameMode>("words");
+  const gameManager = useGame({ gameMode }, useKeyBindings);
   const { containerRef, gameStatus, scoreManager } = gameManager;
 
   const formatTime = (ms: number) => {
@@ -15,7 +17,27 @@ function App() {
 
   return (
     <div className="relative mx-auto my-4 w-fit space-y-4">
-      <h1 className="text-2xl font-bold text-center">Typing Chud</h1>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold text-center">Typing Chud</h1>
+        <div className="flex gap-2 justify-center text-sm">
+          {(['letters', 'words', 'sentences', 'paragraphs'] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => {
+                setGameMode(mode);
+                gameManager.quitGame();
+              }}
+              className={`px-3 py-1 rounded capitalize font-medium transition ${
+                gameMode === mode
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-muted text-foreground hover:bg-blue-500 hover:text-white'
+              }`}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="grid grid-cols-6 gap-2 justify-center text-sm font-mono">
         <div className="px-3 py-1 bg-muted rounded">

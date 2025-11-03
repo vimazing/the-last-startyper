@@ -7,6 +7,7 @@ import type { RefObject } from 'react';
 export type GameStatus = 'waiting' | 'started' | 'game-won' | 'game-over';
 export type GamePhase = 'idle' | 'playing';
 export type PlayStatus = 'started' | 'game-over' | 'game-won';
+export type GameMode = 'letters' | 'words' | 'sentences' | 'paragraphs';
 
 export const isPlaying = (status: GameStatus): status is PlayStatus =>
   status === 'started' || status === 'game-over' || status === 'game-won';
@@ -30,6 +31,9 @@ export type FallingLetter = {
   y: number; // 0-600 pixel position
   state: LetterState;
   stateStartTime?: number; // For animation timing
+  // For word/sentence/paragraph modes
+  fullText?: string; // The complete word/sentence/paragraph
+  charIndex?: number; // Current character index being typed (0-based)
 };
 
 // ============================================================================
@@ -39,7 +43,7 @@ export type FallingLetter = {
 export type KeyLogEntry = { key: string; timestamp: number };
 
 export type GameOptions = {
-  // TODO: Define game options
+  gameMode?: GameMode;
 };
 
 // ============================================================================
