@@ -14,7 +14,7 @@ export function useGame(
 
   const boardManager = useBoard();
   const cursorManager = useCursor();
-  const gameStatusManager = useGameStatus(undefined, gameMode);
+  const gameStatusManager = useGameStatus();
 
   // Wrap renderBoard to include player position
   const renderBoardWrapped = (letters: any = []) => {
@@ -34,6 +34,11 @@ export function useGame(
     cursorManager.moveTowardTarget(deltaTime);
     renderBoardWrapped(letters);
   };
+
+  // Update gameMode when it changes (without recreating gameStatus state)
+  useEffect(() => {
+    gameStatusManager.setGameMode(gameMode);
+  }, [gameMode, gameStatusManager]);
 
   // Set the game loop callback
   useEffect(() => {

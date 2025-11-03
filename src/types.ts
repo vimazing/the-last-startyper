@@ -107,6 +107,7 @@ export type GameStatusManager = {
   updatePlayerX: (x: number) => void;
   handleTypedLetter: (letter: string) => void;
   setGameLoopCallback: (callback: (deltaTime: number, letters: FallingLetter[]) => void) => void;
+  setGameMode: (mode: GameMode) => void;
   addCorrect: () => void;
   addMissed: () => void;
   addDeath: () => void;

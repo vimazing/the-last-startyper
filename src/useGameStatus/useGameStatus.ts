@@ -165,6 +165,10 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     onGameLoopTickRef.current = callback;
   }, []);
 
+  const setGameMode = useCallback((mode: GameMode) => {
+    gameModeRef.current = mode;
+  }, []);
+
   const addCorrect = useCallback(() => {
     setScore(prev => prev + 1);
     setCorrect(prev => prev + 1);
@@ -189,6 +193,7 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     shipExplosionTime,
     updatePlayerX,
     setGameLoopCallback,
+    setGameMode,
     addCorrect,
     addMissed,
     addDeath,
