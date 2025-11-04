@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useGame, type GameMode } from "@vimazing/typing-chud";
 import "@vimazing/typing-chud/game.css";
-import { useKeyBindings } from "./useKeyBindings";
+import { usePlatformHook } from "./usePlatformHook";
 import { testScenarios, getScenario, getScenarioNames, type TestScenario } from "./testStateMachines";
 
 function App() {
    const [scenarioId, setScenarioId] = useState<string>("progressive");
    const scenario = getScenario(scenarioId);
    const [gameMode, setGameMode] = useState<GameMode>(scenario.initialMode);
-   const gameManager = useGame({ gameMode }, useKeyBindings);
+   const gameManager = useGame({ gameMode }, usePlatformHook);
    const { containerRef, gameStatus, scoreManager } = gameManager;
    const lastTransitionIndexRef = useRef<number>(-1);
    const triggeredScoreTransitionsRef = useRef<Set<number>>(new Set());
