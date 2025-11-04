@@ -15,10 +15,10 @@ const MARGIN_RIGHT = 50; // Safe margin from right edge
 const CANVAS_WIDTH = 800;
 const SPACESHIP_Y = 600 - 40; // Position of the ship on canvas
 
-export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: FallingLetter[], lasers: Laser[]) => void, gameMode: GameMode = 'letters') {
+export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: FallingLetter[], lasers: Laser[]) => void, gameMode: GameMode = 'letters') {
   const [gameStatus, setGameStatus] = useState<GameStatus>("waiting");
-  const [shipState, setShipState] = useState<ShipState>("normal");
-  const [shipExplosionTime, setShipExplosionTime] = useState(0);
+  const shipStateRef = useRef<ShipState>("normal");
+  const shipExplosionTimeRef = useRef<number>(0);
   const [score, setScore] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [missed, setMissed] = useState(0);
@@ -29,7 +29,7 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
   const lasersRef = useRef<Laser[]>([]);
   const lastSpawnRef = useRef<number>(0);
   const playerXRef = useRef<number>(CANVAS_WIDTH / 2);
-  const onGameLoopTickRef = useRef(onGameLoopTick);
+  const onGameLoopTickRef = useRef<((deltaTime: number, letters: FallingLetter[], lasers: Laser[], shipState: ShipState, shipExplosionTime: number) => void) | undefined>(undefined);
   const gameModeRef = useRef<GameMode>(gameMode);
 
   // Game loop
@@ -100,15 +100,21 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
           // Collision detected
           letter.state = 'exploding';
           letter.stateStartTime = currentTime;
-          setShipState('exploding');
-          setShipExplosionTime(performance.now());
+          
+          // Update refs for immediate rendering
+          shipStateRef.current = 'exploding';
+          
+          const explosionTime = performance.now();
+          shipExplosionTimeRef.current = explosionTime;
+          
           setDeaths(prev => prev + 1);
 
           // Clear letters and reset spawn timer after explosion animation
           setTimeout(() => {
             lettersRef.current = [];
             lastSpawnRef.current = performance.now();
-            setShipState('normal');
+            shipStateRef.current = 'normal';
+            shipExplosionTimeRef.current = 0;
           }, 500); // Match the 500ms explosion animation
         }
       }
@@ -122,9 +128,9 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
       currentTime - laser.startTime < laser.duration
     );
 
-    // Call tick callback if provided (now with lasers)
+    // Call tick callback if provided (now with lasers and ship state)
     if (onGameLoopTickRef.current) {
-      onGameLoopTickRef.current(deltaTime, lettersRef.current, lasersRef.current);
+      onGameLoopTickRef.current(deltaTime, lettersRef.current, lasersRef.current, shipStateRef.current, shipExplosionTimeRef.current);
     }
 
     // Continue loop
@@ -288,7 +294,7 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     playerXRef.current = x;
   };
 
-  const setGameLoopCallback = (callback: (deltaTime: number, letters: FallingLetter[], lasers: Laser[]) => void) => {
+  const setGameLoopCallback = (callback: (deltaTime: number, letters: FallingLetter[], lasers: Laser[], shipState: ShipState, shipExplosionTime: number) => void) => {
     onGameLoopTickRef.current = callback;
   };
 
@@ -316,8 +322,8 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     startGame,
     quitGame,
     handleTypedLetter,
-    shipState,
-    shipExplosionTime,
+    shipState: shipStateRef.current,  // Return ref value for immediate updates
+    shipExplosionTime: shipExplosionTimeRef.current,  // Return ref value for immediate updates
     updatePlayerX,
     setGameLoopCallback,
     setGameMode,

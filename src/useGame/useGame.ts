@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import type { GameManager, GameOptions, KeyLogEntry, FallingLetter, GameMode, Laser } from "../types";
+import type { GameManager, GameOptions, KeyLogEntry, FallingLetter, GameMode, Laser, ShipState } from "../types";
 import { useBoard } from "../useBoard";
 import { useCursor } from "../useCursor";
 import { useGameStatus } from "../useGameStatus";
@@ -18,12 +18,12 @@ export function useGame(
   const gameStatusManager = useGameStatus(undefined, gameMode);
 
   // Wrap renderBoard to include player position and lasers
-  const renderBoardWrapped = (letters: any = [], lasers: Laser[] = []) => {
-    boardManager.renderBoard(cursorManager.position(), letters, gameStatusManager.shipState, gameStatusManager.shipExplosionTime, gameModeRef.current, lasers);
+  const renderBoardWrapped = (letters: any = [], lasers: Laser[] = [], shipState: ShipState = 'normal', shipExplosionTime: number = 0) => {
+    boardManager.renderBoard(cursorManager.position(), letters, shipState, shipExplosionTime, gameModeRef.current, lasers);
   };
 
   // Game loop tick handler
-  const handleGameLoopTick = (deltaTime: number, letters: FallingLetter[], lasers: Laser[] = []) => {
+  const handleGameLoopTick = (deltaTime: number, letters: FallingLetter[], lasers: Laser[] = [], shipState: ShipState = 'normal', shipExplosionTime: number = 0) => {
     const playerPos = cursorManager.position();
     gameStatusManager.updatePlayerX(playerPos.x);
 
@@ -59,7 +59,7 @@ export function useGame(
       cursorManager.moveTowardTarget(deltaTime);
     }
     
-    renderBoardWrapped(letters, lasers);
+    renderBoardWrapped(letters, lasers, shipState, shipExplosionTime);
   };
 
   // Update gameMode when it changes (without recreating gameStatus state)
