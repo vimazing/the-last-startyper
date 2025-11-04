@@ -41,15 +41,19 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     if (currentTime - lastSpawnRef.current > SPAWN_INTERVAL && lettersRef.current.length < MAX_ACTIVE_LETTERS) {
       const fullText = getRandomWord(gameModeRef.current);
       const firstChar = fullText[0].toUpperCase();
+      
+      // For sentences/paragraphs, spawn centered. For letters/words, spawn randomly
+      const isCenteredMode = gameModeRef.current === 'sentences' || gameModeRef.current === 'paragraphs';
       const spawnWidth = CANVAS_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
-      const randomX = MARGIN_LEFT + Math.random() * spawnWidth;
+      const spawnX = isCenteredMode ? CANVAS_WIDTH / 2 : (MARGIN_LEFT + Math.random() * spawnWidth);
       const randomY = Math.random() * 150; // Between 0-150 (top half of screen)
+      
       const newLetter: FallingLetter = {
-        id: `${currentTime}-${randomX}`,
+        id: `${currentTime}-${spawnX}`,
         letter: firstChar,
         fullText: fullText.toUpperCase(),
         charIndex: 0,
-        x: randomX,
+        x: spawnX,
         y: randomY,
         state: 'normal',
       };

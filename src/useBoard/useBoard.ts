@@ -5,6 +5,25 @@ const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const SPACESHIP_Y = CANVAS_HEIGHT - 40;
 
+// Helper function to break text into two lines at a good breaking point
+const breakTextIntoLines = (text: string): [string, string] => {
+  const midpoint = Math.ceil(text.length / 2);
+  
+  // Try to find a space near the midpoint to break naturally
+  let breakPoint = midpoint;
+  for (let i = midpoint; i >= midpoint - 10 && i >= 0; i--) {
+    if (text[i] === ' ') {
+      breakPoint = i;
+      break;
+    }
+  }
+  
+  const line1 = text.substring(0, breakPoint).trim();
+  const line2 = text.substring(breakPoint).trim();
+  
+  return [line1, line2];
+};
+
 export function useBoard() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -168,13 +187,14 @@ export function useBoard() {
     }
 
     // Draw falling letters with state effects
-    ctx.font = "bold 32px monospace";
+    const isSentenceMode = gameMode === 'sentences' || gameMode === 'paragraphs';
+    const fontSize = isSentenceMode ? 20 : 32;
+    ctx.font = `bold ${fontSize}px monospace`;
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     
     letters.forEach((letter: any) => {
       // For sentences/paragraphs, always center horizontally
-      const isSentenceMode = gameMode === 'sentences' || gameMode === 'paragraphs';
       const letterX = isSentenceMode ? CANVAS_WIDTH / 2 : letter.x;
       
       if (letter.state === 'wrong') {
@@ -225,28 +245,73 @@ export function useBoard() {
          const fullText = letter.fullText || letter.letter;
          const charIndex = letter.charIndex ?? 0;
          
-          // Calculate total width to center all text
-          const totalWidth = ctx.measureText(fullText).width;
-          const startX = letterX - totalWidth / 2;
-         let currentX = startX;
-         
-         // Draw completed characters in green
-         if (charIndex > 0) {
-           ctx.fillStyle = "#00ff00";
-           const completedText = fullText.substring(0, charIndex);
-           ctx.fillText(completedText, currentX, letter.y);
-           currentX += ctx.measureText(completedText).width;
-         }
-         
-         // Draw current character in yellow
-         ctx.fillStyle = "#ffff00";
-         ctx.fillText(fullText[charIndex], currentX, letter.y);
-         currentX += ctx.measureText(fullText[charIndex]).width;
-         
-         // Draw remaining characters in white
-         if (charIndex + 1 < fullText.length) {
-           ctx.fillStyle = "#ffffff";
-           ctx.fillText(fullText.substring(charIndex + 1), currentX, letter.y);
+         if (isSentenceMode && (gameMode === 'sentences' || gameMode === 'paragraphs')) {
+           // For sentences/paragraphs: break into two lines
+           const [line1, line2] = breakTextIntoLines(fullText);
+           const line1Length = line1.length;
+           
+           // Line 1 Y position (slightly above center)
+           const line1Y = letter.y - fontSize;
+           const line2Y = letter.y + fontSize;
+           
+           // Render line 1
+           const line1Width = ctx.measureText(line1).width;
+           let line1X = letterX - line1Width / 2;
+           
+           for (let i = 0; i < line1.length; i++) {
+             const char = line1[i];
+             if (i < charIndex) {
+               ctx.fillStyle = "#00ff00"; // Green - completed
+             } else if (i === charIndex) {
+               ctx.fillStyle = "#ffff00"; // Yellow - current
+             } else {
+               ctx.fillStyle = "#ffffff"; // White - remaining
+             }
+             ctx.fillText(char, line1X, line1Y);
+             line1X += ctx.measureText(char).width;
+           }
+           
+           // Render line 2
+           const line2Width = ctx.measureText(line2).width;
+           let line2X = letterX - line2Width / 2;
+           
+           for (let i = 0; i < line2.length; i++) {
+             const charIdx = line1Length + 1 + i; // Account for space between lines
+             const char = line2[i];
+             if (charIdx < charIndex) {
+               ctx.fillStyle = "#00ff00"; // Green - completed
+             } else if (charIdx === charIndex) {
+               ctx.fillStyle = "#ffff00"; // Yellow - current
+             } else {
+               ctx.fillStyle = "#ffffff"; // White - remaining
+             }
+             ctx.fillText(char, line2X, line2Y);
+             line2X += ctx.measureText(char).width;
+           }
+         } else {
+           // For letters/words: single line as before
+           const totalWidth = ctx.measureText(fullText).width;
+           const startX = letterX - totalWidth / 2;
+           let currentX = startX;
+           
+           // Draw completed characters in green
+           if (charIndex > 0) {
+             ctx.fillStyle = "#00ff00";
+             const completedText = fullText.substring(0, charIndex);
+             ctx.fillText(completedText, currentX, letter.y);
+             currentX += ctx.measureText(completedText).width;
+           }
+           
+           // Draw current character in yellow
+           ctx.fillStyle = "#ffff00";
+           ctx.fillText(fullText[charIndex], currentX, letter.y);
+           currentX += ctx.measureText(fullText[charIndex]).width;
+           
+           // Draw remaining characters in white
+           if (charIndex + 1 < fullText.length) {
+             ctx.fillStyle = "#ffffff";
+             ctx.fillText(fullText.substring(charIndex + 1), currentX, letter.y);
+           }
          }
        }
     });
