@@ -61,7 +61,10 @@ export type FallingLetter = {
 export type KeyLogEntry = { key: string; timestamp: number };
 
 export type GameOptions = {
-  initialGameMode?: GameMode;
+  gameMode?: GameMode;                    // Game mode (defaults to 'letters')
+  downwardSpeed?: number;                 // Falling text speed in px/s (defaults to mode's built-in speed)
+  boardDimensions?: [number, number];     // Canvas dimensions [width, height] (defaults to [800, 600])
+  wordList?: string[];                    // Custom word/sentence/paragraph list (optional, mode-agnostic)
 };
 
 // ============================================================================
@@ -171,7 +174,7 @@ export type GameManager = {
 
   // Game-specific
   handleTypedLetter: (letter: string) => void;
-  changeGameMode: (mode: GameMode) => void;
+  changeGameMode: (options: GameOptions) => void;
 };
 
 // ============================================================================

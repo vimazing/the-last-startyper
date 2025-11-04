@@ -41,7 +41,9 @@ export function getRandomItem<T>(array: readonly T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-export function getRandomWord(gameMode: 'letters' | 'words' | 'sentences' | 'paragraphs'): string {
-  const list = wordLists[gameMode];
+export function getRandomWord(gameMode: 'letters' | 'words' | 'sentences' | 'paragraphs', customList?: string[]): string {
+  // Use custom list if provided, otherwise use default for the game mode
+  // Letters mode always uses default alphabet
+  const list = customList && gameMode !== 'letters' ? customList : wordLists[gameMode];
   return String(getRandomItem(list));
 }

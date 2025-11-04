@@ -5,13 +5,13 @@ import { useKeyBindings } from "./useKeyBindings";
 
 function App() {
   const [gameMode, setGameMode] = useState<GameMode>("letters");
-  const gameManager = useGame({ initialGameMode: gameMode }, useKeyBindings);
+  const gameManager = useGame({ gameMode }, useKeyBindings);
   const { containerRef, gameStatus, scoreManager } = gameManager;
 
   useEffect(() => {
     if (scoreManager.score === 5 && gameMode === "letters") {
       setGameMode("words");
-      gameManager.changeGameMode("words");
+      gameManager.changeGameMode({ gameMode: "words" });
     }
   }, [scoreManager.score, gameMode, gameManager]);
 
@@ -32,7 +32,7 @@ function App() {
               key={mode}
               onClick={(e) => {
                 setGameMode(mode);
-                gameManager.changeGameMode(mode);
+                gameManager.changeGameMode({ gameMode: mode });
                 e.currentTarget.blur(); // Remove focus from button
               }}
               className={`px-3 py-1 rounded capitalize font-medium transition ${gameMode === mode

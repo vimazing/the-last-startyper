@@ -6,16 +6,17 @@ import { useGameStatus } from "../useGameStatus";
 import { useScore } from "../useScore";
 
 export function useGame(
-  options?: GameOptions,
+  initialOptions?: GameOptions,
   platformHook?: unknown
 ): GameManager {
   const [keyLog, setKeyLog] = useState<KeyLogEntry[]>([]);
-  const [gameMode, setGameModeState] = useState<GameMode>(options?.initialGameMode ?? 'letters');
+  const [options, setOptions] = useState<GameOptions>(initialOptions ?? {});
+  const gameMode = options.gameMode ?? 'letters';
   const gameModeRef = useRef<GameMode>(gameMode);
 
   const boardManager = useBoard();
   const cursorManager = useCursor();
-  const gameStatusManager = useGameStatus(undefined, gameMode);
+  const gameStatusManager = useGameStatus(undefined, options);
 
   // Wrap renderBoard to include player position and lasers
   const renderBoardWrapped = (letters: any = [], lasers: Laser[] = [], shipState: ShipState = 'normal', shipExplosionTime: number = 0) => {
@@ -68,8 +69,8 @@ export function useGame(
     gameStatusManager.setGameMode(gameMode);
   }, [gameMode]);
 
-  const changeGameMode = (mode: GameMode) => {
-    setGameModeState(mode);
+  const changeGameMode = (newOptions: GameOptions) => {
+    setOptions(newOptions);
     // Don't quit - just switch modes and let game continue
   };
 

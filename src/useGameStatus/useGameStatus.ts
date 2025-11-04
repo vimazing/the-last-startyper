@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import type { GameStatus, FallingLetter, ShipState, GameMode, Laser } from "../types";
+import { useState, useRef, useEffect } from "react";
+import type { GameStatus, FallingLetter, ShipState, GameMode, Laser, GameOptions } from "../types";
 import { getRandomWord } from "../wordLists";
 
 const LETTER_SPEEDS: Record<GameMode, number> = {
@@ -15,7 +15,24 @@ const MARGIN_RIGHT = 50; // Safe margin from right edge
 const CANVAS_WIDTH = 800;
 const SPACESHIP_Y = 600 - 40; // Position of the ship on canvas
 
-export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: FallingLetter[], lasers: Laser[]) => void, gameMode: GameMode = 'letters') {
+export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: FallingLetter[], lasers: Laser[]) => void, options: GameOptions = {}) {
+  const gameMode = options.gameMode ?? 'letters';
+  const downwardSpeed = options.downwardSpeed;
+  const wordList = options.wordList;
+  
+  // Store options in refs so they can be accessed in the game loop
+  const downwardSpeedRef = useRef<number | undefined>(downwardSpeed);
+  const wordListRef = useRef<string[] | undefined>(wordList);
+  
+  // Update refs when options change
+  useEffect(() => {
+    downwardSpeedRef.current = downwardSpeed;
+  }, [downwardSpeed]);
+  
+  useEffect(() => {
+    wordListRef.current = wordList;
+  }, [wordList]);
+  
   const [gameStatus, setGameStatus] = useState<GameStatus>("waiting");
   const shipStateRef = useRef<ShipState>("normal");
   const shipExplosionTimeRef = useRef<number>(0);
@@ -39,7 +56,7 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
 
     // Spawn new letter/word if enough time has passed and no letters active
     if (currentTime - lastSpawnRef.current > SPAWN_INTERVAL && lettersRef.current.length < MAX_ACTIVE_LETTERS) {
-      const fullText = getRandomWord(gameModeRef.current);
+      const fullText = getRandomWord(gameModeRef.current, wordListRef.current);
       const firstChar = fullText[0].toUpperCase();
       
       // For sentences/paragraphs, spawn centered. For letters/words, spawn randomly
@@ -62,7 +79,7 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
     }
 
     // Update letter positions
-    const speed = LETTER_SPEEDS[gameModeRef.current];
+    const speed = downwardSpeedRef.current ?? LETTER_SPEEDS[gameModeRef.current];
     lettersRef.current.forEach(letter => {
       letter.y += (speed * deltaTime) / 1000;
     });
