@@ -1,5 +1,8 @@
+import { version } from '../package.json';
+
 export const gameInfo = {
-  name: 'Typing Chud',
+  version,
+  name: 'The Last StarTyper',
   description: 'A fast-paced typing game where letters, words, sentences, and paragraphs fall from the top of the screen. Type to destroy them before they reach your ship. Supports dynamic mode switching for endless variety.',
 
   controls: {
@@ -44,7 +47,7 @@ export const gameInfo = {
 
   objective: 'Type falling text as accurately and quickly as possible while accumulating the highest score',
   winCondition: 'Continuous play - keep going as long as you can. Higher scores indicate better typing speed and accuracy.',
-  
+
   features: [
     'Four game modes: Letters, Words, Sentences, Paragraphs',
     'Dynamic mode switching for varied gameplay',

@@ -202,7 +202,7 @@ type ScoreManager = {
 };
 ```
 
-**typing-chud Content Tracking:**
+**the-last-startyper Content Tracking:**
 
 All content types are tracked independently throughout the game:
 
@@ -242,7 +242,7 @@ Some games support dynamic option changes during gameplay via `changeGameMode()`
 game.changeGameMode({ gameMode: 'words', downwardSpeed: 75 });
 ```
 
-### Delayed Mode Switching (typing-chud)
+### Delayed Mode Switching (the-last-startyper)
 
 Mode changes are deferred to respect current gameplay:
 - Changes are stored as "pending options"
@@ -289,7 +289,7 @@ type GameOptions = {
   timeLimit?: number;
 };
 
-// typing-chud (Unified Platform Control)
+// the-last-startyper (Unified Platform Control)
 type GameOptions = {
   gameMode?: 'letters' | 'words' | 'sentences' | 'paragraphs';
   downwardSpeed?: number;           // px/s (mode-agnostic)
@@ -310,7 +310,7 @@ type GameOptions = {
 - Make most options optional
 - Use consistent naming (e.g., `timeLimit` always in seconds)
 
-**Platform Control (typing-chud):**
+**Platform Control (the-last-startyper):**
 - Platforms have full control over game behavior via `GameOptions`
 - `downwardSpeed` is mode-agnostic (single value for all modes)
 - `wordList` allows custom content across all modes
@@ -521,7 +521,7 @@ type ScoreManager = {
 - Additional metrics for display
 - Difficulty multipliers
 
-**typing-chud Content Tracking:**
+**the-last-startyper Content Tracking:**
 - Tracks all content types independently (letters, words, sentences, paragraphs)
 - Preserves historical counts when mode switches
 - `currentCount` reflects only the current game mode count

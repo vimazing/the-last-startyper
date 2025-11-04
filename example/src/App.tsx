@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useGame, type GameMode } from "@vimazing/typing-chud";
-import "@vimazing/typing-chud/game.css";
+import { useGame, type GameMode } from "@vimazing/the-last-startyper";
+import "@vimazing/the-last-startyper/game.css";
 import { usePlatformHook, useStateMachine, getScenario, getScenarioNames } from "./usePlatformHook";
 
 function App() {
@@ -27,7 +27,7 @@ function App() {
    return (
      <div className="relative mx-auto my-4 w-fit space-y-4">
        <div className="space-y-2">
-         <h1 className="text-2xl font-bold text-center">Typing Chud</h1>
+         <h1 className="text-2xl font-bold text-center">The Last StarTyper</h1>
          
          <div className="space-y-2">
            <div className="text-center">

@@ -1,5 +1,5 @@
 {
-  "name": "typing-chud-example",
+  "name": "the-last-startyper-example",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
-    "@vimazing/typing-chud": "file:../",
+    "@vimazing/the-last-startyper": "file:../",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   }

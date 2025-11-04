@@ -11,7 +11,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      "@vimazing/typing-chud": libSource, // use source during dev
+      "@vimazing/the-last-startyper": libSource, // use source during dev
     },
   },
   server: {

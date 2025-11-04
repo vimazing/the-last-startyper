@@ -1,5 +1,5 @@
 {
-  "name": "@vimazing/typing-chud",
+  "name": "@vimazing/the-last-startyper",
   "version": "0.2.0",
   "description": "A fast-paced typing game with dynamic mode switching. Type falling text (letters, words, sentences, paragraphs) before it reaches your ship.",
   "author": "André Padez <andre.padez@gmail.com>",
@@ -17,12 +17,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vimazing/typing-chud.git"
+    "url": "git+https://github.com/vimazing/the-last-startyper.git"
   },
   "bugs": {
-    "url": "https://github.com/vimazing/typing-chud/issues"
+    "url": "https://github.com/vimazing/the-last-startyper/issues"
   },
-  "homepage": "https://github.com/vimazing/typing-chud#readme",
+  "homepage": "https://github.com/vimazing/the-last-startyper#readme",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

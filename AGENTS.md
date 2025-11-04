@@ -1,4 +1,4 @@
-# Agent Development Guidelines - Typing Chud
+# Agent Development Guidelines - The Last StarTyper
 
 ## React 19 Best Practices
 

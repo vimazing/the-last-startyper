@@ -1,4 +1,4 @@
-import type { GameMode } from '@vimazing/typing-chud';
+import type { GameMode } from '@vimazing/the-last-startyper';
 
 export type ModeTransition = {
   fromMode: GameMode;

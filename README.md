@@ -1,4 +1,4 @@
-# Typing Chud
+# The Last StarTyper
 
 A fast-paced typing game built with React and TypeScript. Type falling text before it reaches your ship!
 
@@ -14,14 +14,14 @@ A fast-paced typing game built with React and TypeScript. Type falling text befo
 ## Installation
 
 ```bash
-npm install @vimazing/typing-chud
+npm install @vimazing/the-last-startyper
 ```
 
 ## Quick Start
 
 ```typescript
-import { useGame } from '@vimazing/typing-chud';
-import '@vimazing/typing-chud/game.css';
+import { useGame } from '@vimazing/the-last-startyper';
+import '@vimazing/the-last-startyper/game.css';
 
 function App() {
   const game = useGame({
