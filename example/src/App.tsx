@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useGame, type GameMode } from "@vimazing/typing-chud";
 import "@vimazing/typing-chud/game.css";
-import { usePlatformHook } from "./usePlatformHook";
-import { testScenarios, getScenario, getScenarioNames, type TestScenario } from "./testStateMachines";
+import { usePlatformHook, useStateMachine, getScenario, getScenarioNames } from "./usePlatformHook";
 
 function App() {
    const [scenarioId, setScenarioId] = useState<string>("progressive");
@@ -10,58 +9,13 @@ function App() {
    const [gameMode, setGameMode] = useState<GameMode>(scenario.initialMode);
    const gameManager = useGame({ gameMode }, usePlatformHook);
    const { containerRef, gameStatus, scoreManager } = gameManager;
-   const lastTransitionIndexRef = useRef<number>(-1);
-   const triggeredScoreTransitionsRef = useRef<Set<number>>(new Set());
-   const lastTriggeredModeRef = useRef<GameMode | null>(null);
 
-   useEffect(() => {
-     if (gameStatus !== "started") return;
-
-     // Handle score-based transitions
-     if (scenario.scoreTransitions) {
-       const currentScore = scoreManager.score;
-       const nextTransition = scenario.scoreTransitions.find(
-         (t) => currentScore >= t.scoreThreshold && !triggeredScoreTransitionsRef.current.has(t.scoreThreshold)
-       );
-
-       if (nextTransition) {
-         triggeredScoreTransitionsRef.current.add(nextTransition.scoreThreshold);
-         setGameMode(nextTransition.targetMode);
-         gameManager.changeGameMode({ gameMode: nextTransition.targetMode });
-       }
-       return;
-     }
-
-     // Handle count-based transitions
-     if (!scenario.transitions) return;
-
-     // Skip if we already triggered a transition for this mode
-     if (lastTriggeredModeRef.current === gameMode) {
-       return;
-     }
-
-     const currentTransitionIdx = scenario.transitions.findIndex((t) => t.fromMode === gameMode);
-     
-     if (currentTransitionIdx === -1 || currentTransitionIdx <= lastTransitionIndexRef.current) {
-       return;
-     }
-
-     const currentTransition = scenario.transitions[currentTransitionIdx];
-     const currentCount = scoreManager.currentCount;
-     
-     if (currentCount >= currentTransition.threshold) {
-       lastTransitionIndexRef.current = currentTransitionIdx;
-       lastTriggeredModeRef.current = gameMode; // Remember we triggered from this mode
-       setGameMode(currentTransition.targetMode);
-       gameManager.changeGameMode({ gameMode: currentTransition.targetMode });
-     }
-   }, [scoreManager.currentCount, gameMode, gameManager, scenario, gameStatus, scoreManager.score]);
-
-   useEffect(() => {
-     lastTransitionIndexRef.current = -1;
-     triggeredScoreTransitionsRef.current.clear();
-     lastTriggeredModeRef.current = null;
-   }, [scenarioId]);
+   useStateMachine({
+     gameManager,
+     gameMode,
+     scenario,
+     onModeChange: setGameMode,
+   });
 
   const formatTime = (ms: number) => {
     const seconds = Math.floor(ms / 1000);
