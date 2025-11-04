@@ -1,7 +1,7 @@
 {
   "name": "@vimazing/typing-chud",
-  "version": "0.1.0",
-  "description": "TODO: Game description",
+  "version": "0.2.0",
+  "description": "A fast-paced typing game with dynamic mode switching. Type falling text (letters, words, sentences, paragraphs) before it reaches your ship.",
   "author": "André Padez <andre.padez@gmail.com>",
   "keywords": [
     "vim",
@@ -9,7 +9,11 @@
     "hooks",
     "game",
     "typescript",
-    "vimazing"
+    "vimazing",
+    "typing-game",
+    "typing-practice",
+    "interactive-game",
+    "mode-switching"
   ],
   "repository": {
     "type": "git",
