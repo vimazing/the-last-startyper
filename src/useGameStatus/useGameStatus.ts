@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import type { GameStatus, FallingLetter, ShipState, GameMode } from "../types";
 import { getRandomWord } from "../wordLists";
 
@@ -28,7 +28,7 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
   const gameModeRef = useRef<GameMode>(gameMode);
 
   // Game loop
-  const gameLoop = useCallback((currentTime: number) => {
+  const gameLoop = (currentTime: number) => {
     const deltaTime = currentTime - lastFrameTimeRef.current;
     lastFrameTimeRef.current = currentTime;
 
@@ -92,9 +92,9 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
 
     // Continue loop
     gameLoopRef.current = requestAnimationFrame(gameLoop);
-  }, []);
+  };
 
-  const startGame = useCallback(() => {
+  const startGame = () => {
     lastFrameTimeRef.current = performance.now();
     lastSpawnRef.current = performance.now();
     lettersRef.current = [];
@@ -104,17 +104,17 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     setDeaths(0);
     setGameStatus("started");
     gameLoopRef.current = requestAnimationFrame(gameLoop);
-  }, [gameLoop]);
+  };
 
-  const quitGame = useCallback(() => {
+  const quitGame = () => {
     setGameStatus("waiting");
     if (gameLoopRef.current !== null) {
       cancelAnimationFrame(gameLoopRef.current);
       gameLoopRef.current = null;
     }
-  }, []);
+  };
 
-  const handleTypedLetter = useCallback((typedLetter: string) => {
+  const handleTypedLetter = (typedLetter: string) => {
     if (lettersRef.current.length === 0) return;
     
     const currentLetter = lettersRef.current[0];
@@ -155,33 +155,33 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
         }
       }, 200);
     }
-  }, []);
+  };
 
-  const updatePlayerX = useCallback((x: number) => {
+  const updatePlayerX = (x: number) => {
     playerXRef.current = x;
-  }, []);
+  };
 
-  const setGameLoopCallback = useCallback((callback: (deltaTime: number, letters: FallingLetter[]) => void) => {
+  const setGameLoopCallback = (callback: (deltaTime: number, letters: FallingLetter[]) => void) => {
     onGameLoopTickRef.current = callback;
-  }, []);
+  };
 
-  const setGameMode = useCallback((mode: GameMode) => {
+  const setGameMode = (mode: GameMode) => {
     gameModeRef.current = mode;
-  }, []);
+  };
 
-  const addCorrect = useCallback(() => {
+  const addCorrect = () => {
     setScore(prev => prev + 1);
     setCorrect(prev => prev + 1);
-  }, []);
+  };
 
-  const addMissed = useCallback(() => {
+  const addMissed = () => {
     setScore(prev => Math.max(0, prev - 1));
     setMissed(prev => prev + 1);
-  }, []);
+  };
 
-  const addDeath = useCallback(() => {
+  const addDeath = () => {
     setDeaths(prev => prev + 1);
-  }, []);
+  };
 
   return {
     gameStatus,

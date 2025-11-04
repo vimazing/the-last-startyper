@@ -43,7 +43,7 @@ export type FallingLetter = {
 export type KeyLogEntry = { key: string; timestamp: number };
 
 export type GameOptions = {
-  gameMode?: GameMode;
+  initialGameMode?: GameMode;
 };
 
 // ============================================================================
@@ -153,6 +153,7 @@ export type GameManager = {
 
   // Game-specific
   handleTypedLetter: (letter: string) => void;
+  changeGameMode: (mode: GameMode) => void;
 };
 
 // ============================================================================

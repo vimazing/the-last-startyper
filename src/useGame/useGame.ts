@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { GameManager, GameOptions, KeyLogEntry, FallingLetter } from "../types";
+import type { GameManager, GameOptions, KeyLogEntry, FallingLetter, GameMode } from "../types";
 import { useBoard } from "../useBoard";
 import { useCursor } from "../useCursor";
 import { useGameStatus } from "../useGameStatus";
@@ -10,11 +10,11 @@ export function useGame(
   platformHook?: unknown
 ): GameManager {
   const [keyLog, setKeyLog] = useState<KeyLogEntry[]>([]);
-  const gameMode = options?.gameMode ?? 'letters';
+  const [gameMode, setGameModeState] = useState<GameMode>(options?.initialGameMode ?? 'letters');
 
   const boardManager = useBoard();
   const cursorManager = useCursor();
-  const gameStatusManager = useGameStatus();
+  const gameStatusManager = useGameStatus(undefined, gameMode);
 
   // Wrap renderBoard to include player position
   const renderBoardWrapped = (letters: any = []) => {
@@ -38,12 +38,20 @@ export function useGame(
   // Update gameMode when it changes (without recreating gameStatus state)
   useEffect(() => {
     gameStatusManager.setGameMode(gameMode);
-  }, [gameMode, gameStatusManager]);
+  }, [gameMode]);
+
+  const changeGameMode = (mode: GameMode) => {
+    setGameModeState(mode);
+    // Only quit if the game is actively running
+    if (gameStatusManager.gameStatus === 'started') {
+      gameStatusManager.quitGame();
+    }
+  };
 
   // Set the game loop callback
   useEffect(() => {
     gameStatusManager.setGameLoopCallback(handleGameLoopTick);
-  }, [gameStatusManager, cursorManager, boardManager]);
+  }, []);
 
   // Initial render on mount
   useEffect(() => {
@@ -65,6 +73,7 @@ export function useGame(
     clearKeyLog: () => setKeyLog([]),
     getKeyLog: () => [...keyLog],
     handleTypedLetter: gameStatusManager.handleTypedLetter,
+    changeGameMode,
   };
 
   if (typeof platformHook === 'function') {
