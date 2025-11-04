@@ -5,24 +5,51 @@ const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const SPACESHIP_Y = CANVAS_HEIGHT - 40;
 
-// Helper function to break text into two lines at a good breaking point
-const breakTextIntoLines = (text: string): [string, string] => {
-  const midpoint = Math.ceil(text.length / 2);
-  
-  // Try to find a space near the midpoint to break naturally
-  let breakPoint = midpoint;
-  for (let i = midpoint; i >= midpoint - 10 && i >= 0; i--) {
-    if (text[i] === ' ') {
-      breakPoint = i;
-      break;
+// Helper function to break text into multiple lines at good breaking points
+const breakTextIntoLines = (text: string, numLines: number = 2): string[] => {
+  if (numLines === 2) {
+    const midpoint = Math.ceil(text.length / 2);
+    
+    // Try to find a space near the midpoint to break naturally
+    let breakPoint = midpoint;
+    for (let i = midpoint; i >= midpoint - 10 && i >= 0; i--) {
+      if (text[i] === ' ') {
+        breakPoint = i;
+        break;
+      }
     }
+    
+    // Keep the space at the end of line1 for typing
+    const line1 = text.substring(0, breakPoint + 1); // Include the space
+    const line2 = text.substring(breakPoint + 1).trim(); // Start after the space
+    
+    return [line1, line2];
   }
   
-  // Keep the space at the end of line1 for typing
-  const line1 = text.substring(0, breakPoint + 1); // Include the space
-  const line2 = text.substring(breakPoint + 1).trim(); // Start after the space
+  // For 3+ lines, divide text evenly
+  const lines: string[] = [];
+  const charsPerLine = Math.ceil(text.length / numLines);
+  let startIdx = 0;
   
-  return [line1, line2];
+  for (let i = 0; i < numLines - 1; i++) {
+    let endIdx = startIdx + charsPerLine;
+    
+    // Find nearest space to break at
+    for (let j = endIdx; j >= endIdx - 10 && j >= startIdx; j--) {
+      if (text[j] === ' ') {
+        endIdx = j;
+        break;
+      }
+    }
+    
+    lines.push(text.substring(startIdx, endIdx + 1)); // Include the space
+    startIdx = endIdx + 1;
+  }
+  
+  // Last line gets remaining text
+  lines.push(text.substring(startIdx).trim());
+  
+  return lines;
 };
 
 export function useBoard() {
@@ -249,49 +276,7 @@ export function useBoard() {
       // For sentences/paragraphs, always center horizontally
       const letterX = isSentenceMode ? CANVAS_WIDTH / 2 : letter.x;
       
-      if (letter.state === 'wrong') {
-        // Red glow flash
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = "#ff0000";
-        ctx.fillStyle = "#ff4444";
-        
-        const displayText = letter.fullText || letter.letter;
-        
-        if (isSentenceMode && (gameMode === 'sentences' || gameMode === 'paragraphs')) {
-          // For sentences: break into two lines with Star Wars effect
-          const [line1, line2] = breakTextIntoLines(displayText);
-          
-          ctx.save();
-          
-          // Star Wars perspective effect
-          const perspectiveFactor = 0.8;
-          const vanishingPointX = CANVAS_WIDTH / 2;
-          
-          // Inverted: line2 on top, line1 on bottom
-          const line2Y = letter.y - fontSize * 1.5;
-          const line1Y = letter.y + fontSize;
-          
-          // Draw line2 on top with perspective
-          const line2FontSize = fontSize * perspectiveFactor;
-          ctx.font = `bold ${line2FontSize}px monospace`;
-          const line2CenterX = letterX + (vanishingPointX - letterX) * 0.2;
-          const line2Width = ctx.measureText(line2).width;
-          ctx.fillText(line2, line2CenterX - line2Width / 2, line2Y);
-          
-          // Draw line1 on bottom (full size)
-          ctx.font = `bold ${fontSize}px monospace`;
-          const line1Width = ctx.measureText(line1).width;
-          ctx.fillText(line1, letterX - line1Width / 2, line1Y);
-          
-          ctx.restore();
-        } else {
-          // Single line for letters/words
-          const textWidth = ctx.measureText(displayText).width;
-          ctx.fillText(displayText, letterX - textWidth / 2, letter.y);
-        }
-        
-        ctx.shadowBlur = 0;
-      } else if (letter.state === 'exploding') {
+      if (letter.state === 'exploding') {
         // Explosion effect
         const elapsed = performance.now() - (letter.stateStartTime || 0);
         const progress = Math.min(elapsed / 300, 1);
@@ -320,7 +305,29 @@ export function useBoard() {
          ctx.fillStyle = "#ffffff";
          const displayText = letter.fullText || letter.letter;
          
-         if (isSentenceMode && (gameMode === 'sentences' || gameMode === 'paragraphs')) {
+         if (gameMode === 'paragraphs') {
+          // For paragraphs: 4 lines (first typed at bottom, last typed at top)
+          const lines = breakTextIntoLines(displayText, 4);
+          const perspectiveFactors = [0.6, 0.7, 0.85, 1.0]; // Reversed: smallest at top, largest at bottom
+          const lineSpacing = fontSize * 1.2;
+          
+          ctx.save();
+          
+          lines.forEach((line, lineIndex) => {
+            // Calculate visual position: line 0 at bottom, line 3 at top
+            const visualIndex = lines.length - 1 - lineIndex;
+            const lineY = letter.y + (lineSpacing * (visualIndex - 1.5));
+            const lineFontSize = fontSize * perspectiveFactors[visualIndex];
+            const convergence = 0.3 * (1 - perspectiveFactors[visualIndex]);
+            const lineCenterX = letterX + ((CANVAS_WIDTH / 2) - letterX) * convergence;
+            
+            ctx.font = `bold ${lineFontSize}px monospace`;
+            const lineWidth = ctx.measureText(line).width;
+            ctx.fillText(line, lineCenterX - lineWidth / 2, lineY);
+          });
+          
+          ctx.restore();
+        } else if (isSentenceMode && gameMode === 'sentences') {
            // For sentences: break into two lines during explosion with perspective
            const [line1, line2] = breakTextIntoLines(displayText);
            
@@ -349,9 +356,65 @@ export function useBoard() {
          const fullText = letter.fullText || letter.letter;
          const charIndex = letter.charIndex ?? 0;
          
-          if (isSentenceMode && (gameMode === 'sentences' || gameMode === 'paragraphs')) {
-            // For sentences/paragraphs: break into two lines with Star Wars effect
-            const [line1, line2] = breakTextIntoLines(fullText);
+          if (gameMode === 'paragraphs') {
+            // Paragraphs: break into 4 lines with enhanced Star Wars effect
+            const lines = breakTextIntoLines(fullText, 4);
+            
+            // Calculate character positions for line breaks
+            let totalChars = 0;
+            const lineStartIndices = [0];
+            for (let i = 0; i < lines.length - 1; i++) {
+              totalChars += lines[i].length;
+              lineStartIndices.push(totalChars);
+            }
+            
+            // Enhanced Star Wars perspective for 4 lines
+            // First typed line (index 0) at bottom, last typed line (index 3) at top
+            const perspectiveFactors = [0.6, 0.7, 0.85, 1.0]; // Reversed: smallest at top, largest at bottom
+            const lineSpacing = fontSize * 1.2;
+            
+            ctx.save();
+            
+            // Render each line with perspective
+            lines.forEach((line, lineIndex) => {
+              // Calculate visual position: line 0 at bottom, line 3 at top
+              const visualIndex = lines.length - 1 - lineIndex;
+              const lineY = letter.y + (lineSpacing * (visualIndex - 1.5));
+              const lineFontSize = fontSize * perspectiveFactors[visualIndex];
+              const lineOpacity = 1.0 - (visualIndex * 0.1); // Decreasing opacity for lines at top
+              
+              // Convergence toward vanishing point (more for lines at top)
+              const convergence = 0.3 * (1 - perspectiveFactors[visualIndex]);
+              const lineCenterX = letterX + ((CANVAS_WIDTH / 2) - letterX) * convergence;
+              
+              ctx.font = `bold ${lineFontSize}px monospace`;
+              const lineWidth = ctx.measureText(line).width;
+              let lineX = lineCenterX - lineWidth / 2;
+              
+              // Render characters with color coding
+              for (let i = 0; i < line.length; i++) {
+                const globalCharIdx = lineStartIndices[lineIndex] + i;
+                const char = line[i];
+                
+                if (globalCharIdx < charIndex) {
+                  ctx.fillStyle = `rgba(0, 255, 0, ${lineOpacity})`; // Green - completed
+                } else if (globalCharIdx === charIndex) {
+                  ctx.fillStyle = `rgba(255, 255, 0, ${lineOpacity})`; // Yellow - current
+                  // Store position for ship tracking
+                  letter.currentCharX = lineX + ctx.measureText(char).width / 2;
+                } else {
+                  ctx.fillStyle = `rgba(255, 255, 255, ${lineOpacity})`; // White - remaining
+                }
+                
+                ctx.fillText(char, lineX, lineY);
+                lineX += ctx.measureText(char).width;
+              }
+            });
+            
+            ctx.restore();
+          } else if (isSentenceMode && gameMode === 'sentences') {
+            // For sentences: keep the existing 2-line system
+            const [line1, line2] = breakTextIntoLines(fullText, 2);
             const line1Length = line1.length;
             
             // Check if we're in a line transition animation

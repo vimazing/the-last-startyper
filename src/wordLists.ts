@@ -29,11 +29,11 @@ export const wordLists = {
   ] as const,
 
   paragraphs: [
-    'the quick brown fox jumps over the lazy dog',
-    'practice typing to improve your speed and accuracy',
-    'focus on each word and type with purpose today',
-    'consistency in practice leads to better results',
-    'challenge yourself with longer text passages',
+    'The quick brown fox jumps over the lazy dog, demonstrating all letters of the alphabet in one swift sentence.',
+    'Practice typing every day to improve your speed and accuracy, because consistent effort leads to mastery over time.',
+    'In a galaxy far, far away, a young hero learns to type with incredible speed, defending the universe one keystroke at a time.',
+    'Technology advances rapidly, but the skill of typing remains essential for communication, coding, and creative expression in our digital world.',
+    'Challenge yourself with increasingly difficult passages, pushing your limits and watching your words per minute soar to new heights!',
   ] as const,
 };
 

@@ -6,7 +6,7 @@ const LETTER_SPEEDS: Record<GameMode, number> = {
   letters: 100,
   words: 50,
   sentences: 25,
-  paragraphs: 50,
+  paragraphs: 15, // Even slower for longer text
 };
 const SPAWN_INTERVAL = 1000; // ms between letter spawns
 const MAX_ACTIVE_LETTERS = 1; // Only one letter on screen at a time
@@ -202,8 +202,7 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
         currentLetter.letter = fullText[charIndex];
       }
     } else {
-      currentLetter.state = 'wrong';
-      currentLetter.stateStartTime = performance.now();
+      // Don't change the letter's visual state - only show red laser
       setScore(prev => Math.max(0, prev - 1));
       setMissed(prev => prev + 1);
       
@@ -226,12 +225,6 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
       };
       
       lasersRef.current.push(newLaser);
-      
-      setTimeout(() => {
-        if (currentLetter.state === 'wrong') {
-          currentLetter.state = 'normal';
-        }
-      }, 200);
     }
   };
 
