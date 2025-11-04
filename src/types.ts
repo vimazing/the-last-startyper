@@ -48,6 +48,8 @@ export type FallingLetter = {
   // For line transitions in sentences/paragraphs
   lineTransition?: boolean;
   lineTransitionTime?: number;
+  currentLineIndex?: number; // Which line (0-3) is currently being typed in paragraphs
+  completedLines?: number[]; // Track which lines have been completed for paragraphs
   // For ship tracking in sentences
   currentCharX?: number; // X position of current character to type
 };

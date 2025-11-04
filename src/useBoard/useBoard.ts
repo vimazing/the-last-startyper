@@ -368,23 +368,76 @@ export function useBoard() {
               lineStartIndices.push(totalChars);
             }
             
-            // Enhanced Star Wars perspective for 4 lines
-            // First typed line (index 0) at bottom, last typed line (index 3) at top
-            const perspectiveFactors = [0.6, 0.7, 0.85, 1.0]; // Reversed: smallest at top, largest at bottom
+            // Check if we're in a line transition
+            const isTransitioning = letter.lineTransition && letter.lineTransitionTime;
+            const completedLines = letter.completedLines || [];
+            const transitionProgress = isTransitioning 
+              ? Math.min((performance.now() - letter.lineTransitionTime) / 500, 1) // 500ms animation
+              : 0;
+            
+            // Base perspective factors (will be modified during transitions)
+            const basePerspectiveFactors = [0.6, 0.7, 0.85, 1.0]; // Reversed: smallest at top, largest at bottom
             const lineSpacing = fontSize * 1.2;
             
             ctx.save();
             
-            // Render each line with perspective
+            // Render each line with perspective and animations
             lines.forEach((line, lineIndex) => {
+              // Skip rendering completed lines that have exploded
+              if (completedLines.includes(lineIndex) && (!isTransitioning || transitionProgress > 0.6)) {
+                return;
+              }
+              
               // Calculate visual position: line 0 at bottom, line 3 at top
               const visualIndex = lines.length - 1 - lineIndex;
-              const lineY = letter.y + (lineSpacing * (visualIndex - 1.5));
-              const lineFontSize = fontSize * perspectiveFactors[visualIndex];
-              const lineOpacity = 1.0 - (visualIndex * 0.1); // Decreasing opacity for lines at top
               
-              // Convergence toward vanishing point (more for lines at top)
-              const convergence = 0.3 * (1 - perspectiveFactors[visualIndex]);
+              // During transition, adjust positions and sizes
+              let lineY = letter.y + (lineSpacing * (visualIndex - 1.5));
+              let lineFontSize = fontSize * basePerspectiveFactors[visualIndex];
+              let lineOpacity = 1.0 - (visualIndex * 0.1);
+              
+              // If this line just completed and is exploding
+              if (isTransitioning && completedLines[completedLines.length - 1] === lineIndex && transitionProgress < 0.6) {
+                // Explosion effect for the completed line
+                const explosionProgress = transitionProgress / 0.6;
+                const explosionScale = 1 + explosionProgress * 2;
+                const explosionOpacity = 1 - explosionProgress;
+                
+                ctx.save();
+                ctx.translate(letterX, lineY);
+                ctx.scale(explosionScale, explosionScale);
+                ctx.globalAlpha = explosionOpacity;
+                ctx.fillStyle = "#ffff00";
+                ctx.font = `bold ${lineFontSize}px monospace`;
+                const lineWidth = ctx.measureText(line).width;
+                ctx.fillText(line, -lineWidth / 2, 0);
+                ctx.restore();
+                return; // Skip normal rendering for exploding line
+              }
+              
+              // For remaining lines during transition, grow and shift down
+              if (isTransitioning && !completedLines.includes(lineIndex)) {
+                const numCompletedLines = completedLines.length;
+                // Shift lines down to fill the gap
+                const newVisualIndex = visualIndex + numCompletedLines;
+                if (newVisualIndex < 4) {
+                  // Animate to new position
+                  const targetY = letter.y + (lineSpacing * (newVisualIndex - 1.5));
+                  lineY = lineY + (targetY - lineY) * transitionProgress;
+                  
+                  // Grow to new size
+                  const targetSize = fontSize * basePerspectiveFactors[newVisualIndex];
+                  lineFontSize = lineFontSize + (targetSize - lineFontSize) * transitionProgress;
+                  
+                  // Adjust opacity
+                  const targetOpacity = 1.0 - (newVisualIndex * 0.1);
+                  lineOpacity = lineOpacity + (targetOpacity - lineOpacity) * transitionProgress;
+                }
+              }
+              
+              // Convergence toward vanishing point
+              const convergenceFactor = 1 - (lineFontSize / (fontSize * 1.0)); // Based on current size
+              const convergence = 0.3 * convergenceFactor;
               const lineCenterX = letterX + ((CANVAS_WIDTH / 2) - letterX) * convergence;
               
               ctx.font = `bold ${lineFontSize}px monospace`;

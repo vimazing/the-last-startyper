@@ -14,7 +14,6 @@ const MARGIN_LEFT = 50; // Safe margin from left edge
 const MARGIN_RIGHT = 50; // Safe margin from right edge
 const CANVAS_WIDTH = 800;
 const SPACESHIP_Y = 600 - 40; // Position of the ship on canvas
-const COLLISION_THRESHOLD = 30; // Distance to trigger collision
 
 export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: FallingLetter[], lasers: Laser[]) => void, gameMode: GameMode = 'letters') {
   const [gameStatus, setGameStatus] = useState<GameStatus>("waiting");
@@ -71,11 +70,33 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     // Check for collisions with ship
     lettersRef.current.forEach(letter => {
       if (letter.state === 'normal') {
-        const letterY = letter.y;
-        const distanceFromShip = Math.abs(letterY - SPACESHIP_Y);
+        // Calculate the bottom of the text based on game mode
+        let textBottom = letter.y;
+        
+        if (gameModeRef.current === 'letters') {
+          // For letters, y is the center, so add half font size
+          textBottom = letter.y + 16; // Half of 32px font
+        } else if (gameModeRef.current === 'words') {
+          // For words, y is the center, so add half font size
+          textBottom = letter.y + 16; // Half of 32px font
+        } else if (gameModeRef.current === 'sentences') {
+          // For sentences, we have 2 lines with the bottom line at y + fontSize
+          textBottom = letter.y + 20; // Bottom of lower line (fontSize = 20 for sentences)
+        } else if (gameModeRef.current === 'paragraphs') {
+          // For paragraphs, we have 4 lines
+          // Line positions are at (1.5 - lineIndex) * lineSpacing from y
+          // Bottom line (index 0) is at y + (1.5 * lineSpacing)
+          const fontSize = 20;
+          const lineSpacing = fontSize * 1.2;
+          textBottom = letter.y + (1.5 * lineSpacing) + (fontSize / 2);
+        }
+        
+        // Check if bottom of text reaches top of ship
+        const distanceFromShip = SPACESHIP_Y - textBottom;
         const horizontalDistance = Math.abs(letter.x - playerXRef.current);
 
-        if (distanceFromShip < COLLISION_THRESHOLD && horizontalDistance < 30) {
+        // Death occurs when text bottom reaches ship top (distance <= 0)
+        if (distanceFromShip <= 0 && (gameModeRef.current === 'letters' ? horizontalDistance < 30 : true)) {
           // Collision detected
           letter.state = 'exploding';
           letter.stateStartTime = currentTime;
@@ -161,10 +182,45 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
       const charIndex = (currentLetter.charIndex ?? 0) + 1;
       const fullText = currentLetter.fullText ?? currentLetter.letter;
       
-      // For sentences/paragraphs, check if we completed the first line
-      const isSentenceMode = gameModeRef.current === 'sentences' || gameModeRef.current === 'paragraphs';
-      if (isSentenceMode && fullText.length > 20) {
-        // Find the midpoint where text breaks
+      // Handle line transitions for sentences and paragraphs
+      if (gameModeRef.current === 'paragraphs' && fullText.length > 20) {
+        // Calculate line breaks for 4-line paragraphs
+        const numLines = 4;
+        const charsPerLine = Math.ceil(fullText.length / numLines);
+        const lineBreakPoints: number[] = [];
+        
+        let startIdx = 0;
+        for (let i = 0; i < numLines - 1; i++) {
+          let endIdx = startIdx + charsPerLine;
+          // Find nearest space to break at
+          for (let j = endIdx; j >= endIdx - 10 && j >= startIdx; j--) {
+            if (fullText[j] === ' ') {
+              endIdx = j;
+              break;
+            }
+          }
+          lineBreakPoints.push(endIdx);
+          startIdx = endIdx + 1;
+        }
+        
+        // Check if we just completed a line
+        const currentLineIndex = currentLetter.currentLineIndex ?? 0;
+        if (currentLineIndex < lineBreakPoints.length && charIndex === lineBreakPoints[currentLineIndex] + 1) {
+          // Trigger line transition animation
+          currentLetter.lineTransition = true;
+          currentLetter.lineTransitionTime = performance.now();
+          currentLetter.currentLineIndex = currentLineIndex + 1;
+          if (!currentLetter.completedLines) {
+            currentLetter.completedLines = [];
+          }
+          currentLetter.completedLines.push(currentLineIndex);
+          // Continue to next character
+          currentLetter.charIndex = charIndex;
+          currentLetter.letter = fullText[charIndex];
+          return;
+        }
+      } else if (gameModeRef.current === 'sentences' && fullText.length > 20) {
+        // Original sentence logic (2 lines)
         const midpoint = Math.ceil(fullText.length / 2);
         let breakPoint = midpoint;
         for (let i = midpoint; i >= midpoint - 10 && i >= 0; i--) {
