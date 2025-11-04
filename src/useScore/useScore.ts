@@ -14,6 +14,8 @@ export function useScore(gameStatusManager: any): ScoreManager {
     return () => clearInterval(interval);
   }, [gameStatusManager.gameStatus]);
 
+   const currentCount = gameStatusManager.getCurrentCount();
+
    return {
      timeValue,
      totalKeystrokes: 0, // TODO: Track keystrokes from keyboard input
@@ -25,7 +27,7 @@ export function useScore(gameStatusManager: any): ScoreManager {
      wordsCompleted: gameStatusManager.wordsCompleted,
      sentencesCompleted: gameStatusManager.sentencesCompleted,
      paragraphsCompleted: gameStatusManager.paragraphsCompleted,
-     currentCount: gameStatusManager.getCurrentCount(),
+     currentCount,
    };
  }
 

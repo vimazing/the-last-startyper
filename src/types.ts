@@ -147,6 +147,7 @@ export type GameStatusManager = {
    wordsCompleted: number;
    sentencesCompleted: number;
    paragraphsCompleted: number;
+   currentGameMode: GameMode;
    getCurrentCount: () => number;
  };
 

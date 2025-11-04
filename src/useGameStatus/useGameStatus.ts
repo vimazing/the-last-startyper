@@ -45,6 +45,7 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
    const [wordsCompleted, setWordsCompleted] = useState(0);
    const [sentencesCompleted, setSentencesCompleted] = useState(0);
    const [paragraphsCompleted, setParagraphsCompleted] = useState(0);
+   const [currentGameMode, setCurrentGameMode] = useState<GameMode>(gameMode);
   const gameLoopRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
   const lettersRef = useRef<FallingLetter[]>([]);
@@ -325,35 +326,43 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
     onGameLoopTickRef.current = callback;
   };
 
-  const setGameMode = (mode: GameMode) => {
-    gameModeRef.current = mode;
-  };
+   const setGameMode = (mode: GameMode) => {
+     gameModeRef.current = mode;
+     setCurrentGameMode(mode);
+   };
 
   const setPendingOptions = (newOptions: GameOptions) => {
     pendingOptionsRef.current = newOptions;
+    
+    // Update currentGameMode immediately so getCurrentCount() returns the correct value
+    if (newOptions.gameMode) {
+      setCurrentGameMode(newOptions.gameMode);
+      gameModeRef.current = newOptions.gameMode;
+    }
   };
 
-  const applyPendingOptions = () => {
-    if (!pendingOptionsRef.current) return;
-    
-    const pending = pendingOptionsRef.current;
-    pendingOptionsRef.current = null;
-    
-    // Update game mode
-    if (pending.gameMode) {
-      gameModeRef.current = pending.gameMode;
-    }
-    
-    // Update speed ref
-    if (pending.downwardSpeed !== undefined) {
-      downwardSpeedRef.current = pending.downwardSpeed;
-    }
-    
-    // Update word list ref
-    if (pending.wordList !== undefined) {
-      wordListRef.current = pending.wordList;
-    }
-  };
+   const applyPendingOptions = () => {
+     if (!pendingOptionsRef.current) return;
+     
+     const pending = pendingOptionsRef.current;
+     pendingOptionsRef.current = null;
+     
+     // Update game mode
+     if (pending.gameMode) {
+       gameModeRef.current = pending.gameMode;
+       setCurrentGameMode(pending.gameMode);
+     }
+     
+     // Update speed ref
+     if (pending.downwardSpeed !== undefined) {
+       downwardSpeedRef.current = pending.downwardSpeed;
+     }
+     
+     // Update word list ref
+     if (pending.wordList !== undefined) {
+       wordListRef.current = pending.wordList;
+     }
+   };
 
   const addCorrect = () => {
     setScore(prev => prev + 1);
@@ -382,7 +391,7 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
    };
 
    const getCurrentCount = (): number => {
-     const mode = gameModeRef.current;
+     const mode = currentGameMode;
      if (mode === 'letters') {
        return lettersCompleted;
      } else if (mode === 'words') {
@@ -419,6 +428,7 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
      wordsCompleted,
      sentencesCompleted,
      paragraphsCompleted,
+     currentGameMode,
      getCurrentCount,
    };
  }
