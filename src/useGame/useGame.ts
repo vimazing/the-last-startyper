@@ -28,7 +28,7 @@ export function useGame(
     gameStatusManager.updatePlayerX(playerPos.x);
 
     // For words/letters, auto-track to falling letters
-    // For sentences/paragraphs, keep ship centered
+    // For sentences/paragraphs, track to current character position
     if (gameModeRef.current !== 'sentences' && gameModeRef.current !== 'paragraphs') {
       if (letters.length > 0) {
         const letter = letters[0];
@@ -37,9 +37,16 @@ export function useGame(
       
       cursorManager.moveTowardTarget(deltaTime);
     } else {
-      // Keep ship centered for sentence/paragraph mode
-      cursorManager.setTargetX(400); // Canvas center
-      cursorManager.moveTowardTarget(deltaTime); // Move to center but don't track letters
+      // For sentences: track to current character position
+      if (letters.length > 0) {
+        const letter = letters[0];
+        // Use the stored character position or default to center
+        const targetX = letter.currentCharX || 400;
+        cursorManager.setTargetX(targetX);
+      } else {
+        cursorManager.setTargetX(400); // Default to center when no letters
+      }
+      cursorManager.moveTowardTarget(deltaTime);
     }
     
     renderBoardWrapped(letters);

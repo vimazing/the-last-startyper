@@ -37,6 +37,8 @@ export type FallingLetter = {
   // For line transitions in sentences/paragraphs
   lineTransition?: boolean;
   lineTransitionTime?: number;
+  // For ship tracking in sentences
+  currentCharX?: number; // X position of current character to type
 };
 
 // ============================================================================

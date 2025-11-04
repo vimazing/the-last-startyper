@@ -359,6 +359,8 @@ export function useBoard() {
                 ctx.fillStyle = `rgba(0, 255, 0, ${topOpacity})`; // Green - completed
               } else if (charIdx === charIndex) {
                 ctx.fillStyle = `rgba(255, 255, 0, ${topOpacity})`; // Yellow - current
+                // Store position of current character for ship tracking
+                letter.currentCharX = line2X + ctx.measureText(char).width / 2;
               } else {
                 ctx.fillStyle = `rgba(255, 255, 255, ${topOpacity})`; // White - remaining
               }
@@ -380,6 +382,8 @@ export function useBoard() {
                     ctx.fillStyle = "#00ff00"; // Green - completed
                   } else if (i === charIndex) {
                     ctx.fillStyle = "#ffff00"; // Yellow - current
+                    // Store position of current character for ship tracking
+                    letter.currentCharX = line1X + ctx.measureText(char).width / 2;
                   } else {
                     ctx.fillStyle = "#ffffff"; // White - remaining
                   }
