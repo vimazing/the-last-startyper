@@ -169,7 +169,7 @@ export function useBoard() {
 
     // Draw falling letters with state effects
     ctx.font = "bold 32px monospace";
-    ctx.textAlign = "center";
+    ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     
     letters.forEach((letter: any) => {
@@ -181,7 +181,8 @@ export function useBoard() {
         
         // Draw full text or just current letter
         const displayText = letter.fullText || letter.letter;
-        ctx.fillText(displayText, letter.x, letter.y);
+        const textWidth = ctx.measureText(displayText).width;
+        ctx.fillText(displayText, letter.x - textWidth / 2, letter.y);
         ctx.shadowBlur = 0;
       } else if (letter.state === 'exploding') {
         // Explosion effect
@@ -208,33 +209,42 @@ export function useBoard() {
           ctx.fill();
         }
         
-        // Full text fading
-        ctx.fillStyle = "#ffffff";
-        const displayText = letter.fullText || letter.letter;
-        ctx.fillText(displayText, 0, 0);
+         // Full text fading
+         ctx.fillStyle = "#ffffff";
+         const displayText = letter.fullText || letter.letter;
+         const textWidth = ctx.measureText(displayText).width;
+         ctx.fillText(displayText, -textWidth / 2, 0);
         
         ctx.restore();
-      } else {
-        // Normal state - show full text with progress indication
-        const fullText = letter.fullText || letter.letter;
-        const charIndex = letter.charIndex ?? 0;
-        
-        // Draw completed characters in green
-        if (charIndex > 0) {
-          ctx.fillStyle = "#00ff00";
-          ctx.fillText(fullText.substring(0, charIndex), letter.x, letter.y);
-        }
-        
-        // Draw current character in yellow
-        ctx.fillStyle = "#ffff00";
-        ctx.fillText(fullText[charIndex], letter.x, letter.y);
-        
-        // Draw remaining characters in white
-        if (charIndex + 1 < fullText.length) {
-          ctx.fillStyle = "#ffffff";
-          ctx.fillText(fullText.substring(charIndex + 1), letter.x, letter.y);
-        }
-      }
+       } else {
+         // Normal state - show full text with progress indication
+         const fullText = letter.fullText || letter.letter;
+         const charIndex = letter.charIndex ?? 0;
+         
+         // Calculate total width to center all text
+         const totalWidth = ctx.measureText(fullText).width;
+         const startX = letter.x - totalWidth / 2;
+         let currentX = startX;
+         
+         // Draw completed characters in green
+         if (charIndex > 0) {
+           ctx.fillStyle = "#00ff00";
+           const completedText = fullText.substring(0, charIndex);
+           ctx.fillText(completedText, currentX, letter.y);
+           currentX += ctx.measureText(completedText).width;
+         }
+         
+         // Draw current character in yellow
+         ctx.fillStyle = "#ffff00";
+         ctx.fillText(fullText[charIndex], currentX, letter.y);
+         currentX += ctx.measureText(fullText[charIndex]).width;
+         
+         // Draw remaining characters in white
+         if (charIndex + 1 < fullText.length) {
+           ctx.fillStyle = "#ffffff";
+           ctx.fillText(fullText.substring(charIndex + 1), currentX, letter.y);
+         }
+       }
     });
   };
 
