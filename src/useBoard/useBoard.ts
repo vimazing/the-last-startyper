@@ -4,7 +4,6 @@ import type { PlayerPosition, ShipState, GameMode } from "../types";
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const SPACESHIP_Y = CANVAS_HEIGHT - 40;
-const MAX_TEXT_WIDTH = CANVAS_WIDTH * 0.8; // 80% of canvas width for sentences/paragraphs
 
 export function useBoard() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -186,7 +185,7 @@ export function useBoard() {
         
         // Draw full text or just current letter
         const displayText = letter.fullText || letter.letter;
-        const textWidth = Math.min(ctx.measureText(displayText).width, MAX_TEXT_WIDTH);
+        const textWidth = ctx.measureText(displayText).width;
         ctx.fillText(displayText, letterX - textWidth / 2, letter.y);
         ctx.shadowBlur = 0;
       } else if (letter.state === 'exploding') {
@@ -217,7 +216,7 @@ export function useBoard() {
          // Full text fading
          ctx.fillStyle = "#ffffff";
          const displayText = letter.fullText || letter.letter;
-         const textWidth = Math.min(ctx.measureText(displayText).width, MAX_TEXT_WIDTH);
+         const textWidth = ctx.measureText(displayText).width;
          ctx.fillText(displayText, -textWidth / 2, 0);
         
         ctx.restore();
@@ -226,9 +225,9 @@ export function useBoard() {
          const fullText = letter.fullText || letter.letter;
          const charIndex = letter.charIndex ?? 0;
          
-         // Calculate total width to center all text
-         const totalWidth = Math.min(ctx.measureText(fullText).width, MAX_TEXT_WIDTH);
-         const startX = letterX - totalWidth / 2;
+          // Calculate total width to center all text
+          const totalWidth = ctx.measureText(fullText).width;
+          const startX = letterX - totalWidth / 2;
          let currentX = startX;
          
          // Draw completed characters in green

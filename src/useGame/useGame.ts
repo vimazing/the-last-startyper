@@ -38,6 +38,7 @@ export function useGame(
     } else {
       // Keep ship centered for sentence/paragraph mode
       cursorManager.setTargetX(400); // Canvas center
+      cursorManager.moveTowardTarget(deltaTime); // Move to center but don't track letters
     }
     
     renderBoardWrapped(letters);
