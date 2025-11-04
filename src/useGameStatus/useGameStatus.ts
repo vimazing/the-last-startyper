@@ -137,6 +137,31 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
 
       const charIndex = (currentLetter.charIndex ?? 0) + 1;
       const fullText = currentLetter.fullText ?? currentLetter.letter;
+      
+      // For sentences/paragraphs, check if we completed the first line
+      const isSentenceMode = gameModeRef.current === 'sentences' || gameModeRef.current === 'paragraphs';
+      if (isSentenceMode && fullText.length > 20) {
+        // Find the midpoint where text breaks
+        const midpoint = Math.ceil(fullText.length / 2);
+        let breakPoint = midpoint;
+        for (let i = midpoint; i >= midpoint - 10 && i >= 0; i--) {
+          if (fullText[i] === ' ') {
+            breakPoint = i;
+            break;
+          }
+        }
+        
+        // If we just completed the first line (typed the space at position breakPoint)
+        if (charIndex === breakPoint + 1) {
+          // Trigger line transition animation
+          currentLetter.lineTransition = true;
+          currentLetter.lineTransitionTime = performance.now();
+          // Continue to next character (first char of line 2)
+          currentLetter.charIndex = charIndex;
+          currentLetter.letter = fullText[charIndex];
+          return;
+        }
+      }
 
       // Check if word is complete
       if (charIndex >= fullText.length) {

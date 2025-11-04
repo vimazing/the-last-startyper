@@ -34,6 +34,9 @@ export type FallingLetter = {
   // For word/sentence/paragraph modes
   fullText?: string; // The complete word/sentence/paragraph
   charIndex?: number; // Current character index being typed (0-based)
+  // For line transitions in sentences/paragraphs
+  lineTransition?: boolean;
+  lineTransitionTime?: number;
 };
 
 // ============================================================================

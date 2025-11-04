@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { GameManager, GameOptions, KeyLogEntry, FallingLetter, GameMode } from "../types";
 import { useBoard } from "../useBoard";
 import { useCursor } from "../useCursor";
@@ -11,6 +11,7 @@ export function useGame(
 ): GameManager {
   const [keyLog, setKeyLog] = useState<KeyLogEntry[]>([]);
   const [gameMode, setGameModeState] = useState<GameMode>(options?.initialGameMode ?? 'letters');
+  const gameModeRef = useRef<GameMode>(gameMode);
 
   const boardManager = useBoard();
   const cursorManager = useCursor();
@@ -18,7 +19,7 @@ export function useGame(
 
   // Wrap renderBoard to include player position
   const renderBoardWrapped = (letters: any = []) => {
-    boardManager.renderBoard(cursorManager.position(), letters, gameStatusManager.shipState, gameStatusManager.shipExplosionTime, gameMode);
+    boardManager.renderBoard(cursorManager.position(), letters, gameStatusManager.shipState, gameStatusManager.shipExplosionTime, gameModeRef.current);
   };
 
   // Game loop tick handler
@@ -28,7 +29,7 @@ export function useGame(
 
     // For words/letters, auto-track to falling letters
     // For sentences/paragraphs, keep ship centered
-    if (gameMode !== 'sentences' && gameMode !== 'paragraphs') {
+    if (gameModeRef.current !== 'sentences' && gameModeRef.current !== 'paragraphs') {
       if (letters.length > 0) {
         const letter = letters[0];
         cursorManager.setTargetX(letter.x);
@@ -46,6 +47,7 @@ export function useGame(
 
   // Update gameMode when it changes (without recreating gameStatus state)
   useEffect(() => {
+    gameModeRef.current = gameMode;
     gameStatusManager.setGameMode(gameMode);
   }, [gameMode]);
 

@@ -18,8 +18,9 @@ const breakTextIntoLines = (text: string): [string, string] => {
     }
   }
   
-  const line1 = text.substring(0, breakPoint).trim();
-  const line2 = text.substring(breakPoint).trim();
+  // Keep the space at the end of line1 for typing
+  const line1 = text.substring(0, breakPoint + 1); // Include the space
+  const line2 = text.substring(breakPoint + 1).trim(); // Start after the space
   
   return [line1, line2];
 };
@@ -203,10 +204,41 @@ export function useBoard() {
         ctx.shadowColor = "#ff0000";
         ctx.fillStyle = "#ff4444";
         
-        // Draw full text or just current letter
         const displayText = letter.fullText || letter.letter;
-        const textWidth = ctx.measureText(displayText).width;
-        ctx.fillText(displayText, letterX - textWidth / 2, letter.y);
+        
+        if (isSentenceMode && (gameMode === 'sentences' || gameMode === 'paragraphs')) {
+          // For sentences: break into two lines with Star Wars effect
+          const [line1, line2] = breakTextIntoLines(displayText);
+          
+          ctx.save();
+          
+          // Star Wars perspective effect
+          const perspectiveFactor = 0.8;
+          const vanishingPointX = CANVAS_WIDTH / 2;
+          
+          // Inverted: line2 on top, line1 on bottom
+          const line2Y = letter.y - fontSize * 1.5;
+          const line1Y = letter.y + fontSize;
+          
+          // Draw line2 on top with perspective
+          const line2FontSize = fontSize * perspectiveFactor;
+          ctx.font = `bold ${line2FontSize}px monospace`;
+          const line2CenterX = letterX + (vanishingPointX - letterX) * 0.2;
+          const line2Width = ctx.measureText(line2).width;
+          ctx.fillText(line2, line2CenterX - line2Width / 2, line2Y);
+          
+          // Draw line1 on bottom (full size)
+          ctx.font = `bold ${fontSize}px monospace`;
+          const line1Width = ctx.measureText(line1).width;
+          ctx.fillText(line1, letterX - line1Width / 2, line1Y);
+          
+          ctx.restore();
+        } else {
+          // Single line for letters/words
+          const textWidth = ctx.measureText(displayText).width;
+          ctx.fillText(displayText, letterX - textWidth / 2, letter.y);
+        }
+        
         ctx.shadowBlur = 0;
       } else if (letter.state === 'exploding') {
         // Explosion effect
@@ -236,8 +268,29 @@ export function useBoard() {
          // Full text fading
          ctx.fillStyle = "#ffffff";
          const displayText = letter.fullText || letter.letter;
-         const textWidth = ctx.measureText(displayText).width;
-         ctx.fillText(displayText, -textWidth / 2, 0);
+         
+         if (isSentenceMode && (gameMode === 'sentences' || gameMode === 'paragraphs')) {
+           // For sentences: break into two lines during explosion with perspective
+           const [line1, line2] = breakTextIntoLines(displayText);
+           
+           // Star Wars perspective for explosion
+           const perspectiveFactor = 0.8;
+           
+           // Draw line2 on top with smaller font
+           ctx.save();
+           ctx.font = `bold ${fontSize * perspectiveFactor}px monospace`;
+           const line2Width = ctx.measureText(line2).width;
+           ctx.fillText(line2, -line2Width / 2, -fontSize * 1.5);
+           ctx.restore();
+           
+           // Draw line1 on bottom (normal size)
+           const line1Width = ctx.measureText(line1).width;
+           ctx.fillText(line1, -line1Width / 2, fontSize);
+         } else {
+           // Single line for letters/words
+           const textWidth = ctx.measureText(displayText).width;
+           ctx.fillText(displayText, -textWidth / 2, 0);
+         }
         
         ctx.restore();
        } else {
@@ -245,49 +298,98 @@ export function useBoard() {
          const fullText = letter.fullText || letter.letter;
          const charIndex = letter.charIndex ?? 0;
          
-         if (isSentenceMode && (gameMode === 'sentences' || gameMode === 'paragraphs')) {
-           // For sentences/paragraphs: break into two lines
-           const [line1, line2] = breakTextIntoLines(fullText);
-           const line1Length = line1.length;
-           
-           // Line 1 Y position (slightly above center)
-           const line1Y = letter.y - fontSize;
-           const line2Y = letter.y + fontSize;
-           
-           // Render line 1
-           const line1Width = ctx.measureText(line1).width;
-           let line1X = letterX - line1Width / 2;
-           
-           for (let i = 0; i < line1.length; i++) {
-             const char = line1[i];
-             if (i < charIndex) {
-               ctx.fillStyle = "#00ff00"; // Green - completed
-             } else if (i === charIndex) {
-               ctx.fillStyle = "#ffff00"; // Yellow - current
-             } else {
-               ctx.fillStyle = "#ffffff"; // White - remaining
-             }
-             ctx.fillText(char, line1X, line1Y);
-             line1X += ctx.measureText(char).width;
-           }
-           
-           // Render line 2
-           const line2Width = ctx.measureText(line2).width;
-           let line2X = letterX - line2Width / 2;
-           
-           for (let i = 0; i < line2.length; i++) {
-             const charIdx = line1Length + 1 + i; // Account for space between lines
-             const char = line2[i];
-             if (charIdx < charIndex) {
-               ctx.fillStyle = "#00ff00"; // Green - completed
-             } else if (charIdx === charIndex) {
-               ctx.fillStyle = "#ffff00"; // Yellow - current
-             } else {
-               ctx.fillStyle = "#ffffff"; // White - remaining
-             }
-             ctx.fillText(char, line2X, line2Y);
-             line2X += ctx.measureText(char).width;
-           }
+          if (isSentenceMode && (gameMode === 'sentences' || gameMode === 'paragraphs')) {
+            // For sentences/paragraphs: break into two lines with Star Wars effect
+            const [line1, line2] = breakTextIntoLines(fullText);
+            const line1Length = line1.length;
+            
+            // Check if we're in a line transition animation
+            const isTransitioning = letter.lineTransition && letter.lineTransitionTime;
+            const transitionProgress = isTransitioning 
+              ? Math.min((performance.now() - letter.lineTransitionTime) / 500, 1) // 500ms animation
+              : 0;
+            
+            // Star Wars perspective effect
+            const perspectiveFactor = isTransitioning 
+              ? 0.8 + (0.2 * transitionProgress)  // Grow from 0.8 to 1.0
+              : 0.8;
+            const vanishingPointX = CANVAS_WIDTH / 2;
+            
+            // Positions with animation
+            const line2Y = letter.y - fontSize * (isTransitioning ? 1.5 - transitionProgress * 0.5 : 1.5);
+            const line1Y = letter.y + fontSize;
+            
+            // If transitioning, line1 explodes independently
+            if (isTransitioning && transitionProgress < 0.6) {
+              // Draw exploding line1
+              const explosionProgress = transitionProgress / 0.6; // Complete in 60% of transition
+              const explosionScale = 1 + explosionProgress * 2;
+              const explosionOpacity = 1 - explosionProgress;
+              
+              ctx.save();
+              ctx.translate(letterX, line1Y);
+              ctx.scale(explosionScale, explosionScale);
+              ctx.globalAlpha = explosionOpacity;
+              ctx.fillStyle = "#ffff00";
+              const line1Width = ctx.measureText(line1).width;
+              ctx.fillText(line1, -line1Width / 2, 0);
+              ctx.restore();
+            }
+            
+            // Save context for transformations
+            ctx.save();
+            
+            // Render line 2 (with growing effect during transition)
+            const line2FontSize = fontSize * perspectiveFactor;
+            ctx.font = `bold ${line2FontSize}px monospace`;
+            
+            const line2Width = ctx.measureText(line2).width;
+            // Apply perspective - top line moves toward vanishing point (less during transition)
+            const perspectiveAmount = isTransitioning ? 0.2 * (1 - transitionProgress) : 0.2;
+            const line2CenterX = letterX + (vanishingPointX - letterX) * perspectiveAmount;
+            let line2X = line2CenterX - line2Width / 2;
+            
+            // Add slight transparency for depth (but make it more opaque during transition)
+            const topOpacity = isTransitioning ? 0.85 + 0.15 * transitionProgress : 0.85;
+            
+            for (let i = 0; i < line2.length; i++) {
+              const charIdx = line1Length + i; // line1 already includes the space
+              const char = line2[i];
+              if (charIdx < charIndex) {
+                ctx.fillStyle = `rgba(0, 255, 0, ${topOpacity})`; // Green - completed
+              } else if (charIdx === charIndex) {
+                ctx.fillStyle = `rgba(255, 255, 0, ${topOpacity})`; // Yellow - current
+              } else {
+                ctx.fillStyle = `rgba(255, 255, 255, ${topOpacity})`; // White - remaining
+              }
+              ctx.fillText(char, line2X, line2Y);
+              line2X += ctx.measureText(char).width;
+            }
+            
+            // Render line 1 only if not transitioning or in early phase of transition
+            if (!isTransitioning || transitionProgress > 0.6) {
+              // After transition, don't render line1 anymore
+              if (!isTransitioning) {
+                ctx.font = `bold ${fontSize}px monospace`;
+                const line1Width = ctx.measureText(line1).width;
+                let line1X = letterX - line1Width / 2;
+                
+                for (let i = 0; i < line1.length; i++) {
+                  const char = line1[i];
+                  if (i < charIndex) {
+                    ctx.fillStyle = "#00ff00"; // Green - completed
+                  } else if (i === charIndex) {
+                    ctx.fillStyle = "#ffff00"; // Yellow - current
+                  } else {
+                    ctx.fillStyle = "#ffffff"; // White - remaining
+                  }
+                  ctx.fillText(char, line1X, line1Y);
+                  line1X += ctx.measureText(char).width;
+                }
+              }
+            }
+            
+            ctx.restore();
          } else {
            // For letters/words: single line as before
            const totalWidth = ctx.measureText(fullText).width;
