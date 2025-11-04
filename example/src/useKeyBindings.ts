@@ -30,9 +30,9 @@ export const useKeyBindings = (gameManager: GameManager) => {
         return;
       }
 
-      // handle letter typing during game
+      // handle letter and punctuation typing during game
       if (gameManager.gameStatus === "started") {
-        if (ev.key.length === 1 && /[a-zA-Z]/.test(ev.key)) {
+        if (ev.key.length === 1 && /[a-zA-Z.,!?]/.test(ev.key)) {
           gameManager.handleTypedLetter(ev.key);
         }
       }

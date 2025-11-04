@@ -1,9 +1,10 @@
 import { useRef, useEffect } from "react";
-import type { PlayerPosition, ShipState } from "../types";
+import type { PlayerPosition, ShipState, GameMode } from "../types";
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const SPACESHIP_Y = CANVAS_HEIGHT - 40;
+const MAX_TEXT_WIDTH = CANVAS_WIDTH * 0.8; // 80% of canvas width for sentences/paragraphs
 
 export function useBoard() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -27,7 +28,7 @@ export function useBoard() {
     canvasRef.current = canvas;
   }, []);
 
-  const renderBoard = (playerPosition: PlayerPosition, letters: any = [], shipState: ShipState = "normal", shipExplosionTime?: number) => {
+  const renderBoard = (playerPosition: PlayerPosition, letters: any = [], shipState: ShipState = "normal", shipExplosionTime?: number, gameMode: GameMode = 'letters') => {
     if (shipExplosionTime !== undefined) {
       shipExplosionTimeRef.current = shipExplosionTime;
     }
@@ -173,6 +174,10 @@ export function useBoard() {
     ctx.textBaseline = "middle";
     
     letters.forEach((letter: any) => {
+      // For sentences/paragraphs, always center horizontally
+      const isSentenceMode = gameMode === 'sentences' || gameMode === 'paragraphs';
+      const letterX = isSentenceMode ? CANVAS_WIDTH / 2 : letter.x;
+      
       if (letter.state === 'wrong') {
         // Red glow flash
         ctx.shadowBlur = 20;
@@ -181,8 +186,8 @@ export function useBoard() {
         
         // Draw full text or just current letter
         const displayText = letter.fullText || letter.letter;
-        const textWidth = ctx.measureText(displayText).width;
-        ctx.fillText(displayText, letter.x - textWidth / 2, letter.y);
+        const textWidth = Math.min(ctx.measureText(displayText).width, MAX_TEXT_WIDTH);
+        ctx.fillText(displayText, letterX - textWidth / 2, letter.y);
         ctx.shadowBlur = 0;
       } else if (letter.state === 'exploding') {
         // Explosion effect
@@ -192,7 +197,7 @@ export function useBoard() {
         const opacity = 1 - progress;
         
         ctx.save();
-        ctx.translate(letter.x, letter.y);
+        ctx.translate(letterX, letter.y);
         ctx.scale(scale, scale);
         ctx.globalAlpha = opacity;
         
@@ -212,7 +217,7 @@ export function useBoard() {
          // Full text fading
          ctx.fillStyle = "#ffffff";
          const displayText = letter.fullText || letter.letter;
-         const textWidth = ctx.measureText(displayText).width;
+         const textWidth = Math.min(ctx.measureText(displayText).width, MAX_TEXT_WIDTH);
          ctx.fillText(displayText, -textWidth / 2, 0);
         
         ctx.restore();
@@ -222,8 +227,8 @@ export function useBoard() {
          const charIndex = letter.charIndex ?? 0;
          
          // Calculate total width to center all text
-         const totalWidth = ctx.measureText(fullText).width;
-         const startX = letter.x - totalWidth / 2;
+         const totalWidth = Math.min(ctx.measureText(fullText).width, MAX_TEXT_WIDTH);
+         const startX = letterX - totalWidth / 2;
          let currentX = startX;
          
          // Draw completed characters in green

@@ -2,7 +2,12 @@ import { useState, useRef } from "react";
 import type { GameStatus, FallingLetter, ShipState, GameMode } from "../types";
 import { getRandomWord } from "../wordLists";
 
-const LETTER_SPEED = 100; // pixels per second
+const LETTER_SPEEDS: Record<GameMode, number> = {
+  letters: 100,
+  words: 50,
+  sentences: 25,
+  paragraphs: 50,
+};
 const SPAWN_INTERVAL = 1000; // ms between letter spawns
 const MAX_ACTIVE_LETTERS = 1; // Only one letter on screen at a time
 const MARGIN_LEFT = 50; // Safe margin from left edge
@@ -53,8 +58,9 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     }
 
     // Update letter positions
+    const speed = LETTER_SPEEDS[gameModeRef.current];
     lettersRef.current.forEach(letter => {
-      letter.y += (LETTER_SPEED * deltaTime) / 1000;
+      letter.y += (speed * deltaTime) / 1000;
     });
 
     // Check for collisions with ship

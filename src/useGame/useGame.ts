@@ -18,7 +18,7 @@ export function useGame(
 
   // Wrap renderBoard to include player position
   const renderBoardWrapped = (letters: any = []) => {
-    boardManager.renderBoard(cursorManager.position(), letters, gameStatusManager.shipState, gameStatusManager.shipExplosionTime);
+    boardManager.renderBoard(cursorManager.position(), letters, gameStatusManager.shipState, gameStatusManager.shipExplosionTime, gameMode);
   };
 
   // Game loop tick handler
@@ -26,12 +26,20 @@ export function useGame(
     const playerPos = cursorManager.position();
     gameStatusManager.updatePlayerX(playerPos.x);
 
-    if (letters.length > 0) {
-      const letter = letters[0];
-      cursorManager.setTargetX(letter.x);
+    // For words/letters, auto-track to falling letters
+    // For sentences/paragraphs, keep ship centered
+    if (gameMode !== 'sentences' && gameMode !== 'paragraphs') {
+      if (letters.length > 0) {
+        const letter = letters[0];
+        cursorManager.setTargetX(letter.x);
+      }
+      
+      cursorManager.moveTowardTarget(deltaTime);
+    } else {
+      // Keep ship centered for sentence/paragraph mode
+      cursorManager.setTargetX(400); // Canvas center
     }
     
-    cursorManager.moveTowardTarget(deltaTime);
     renderBoardWrapped(letters);
   };
 

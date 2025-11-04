@@ -16,14 +16,16 @@ export const wordLists = {
   ] as const,
 
   sentences: [
-    'the quick brown fox',
-    'jump over lazy dog',
-    'coding is fun today',
-    'practice makes perfect',
-    'type faster every day',
-    'aim for high scores',
-    'stay focused always',
-    'keep calm and type',
+    'The quick brown fox jumps over the lazy dog.',
+    'Typing fast, with accuracy, is the best skill.',
+    'How are you doing today?',
+    'Practice makes perfect, so keep trying!',
+    'Type faster every day, and improve your skills.',
+    'Stay focused, avoid distractions, and type well.',
+    'Keep calm, breathe deeply, and type with purpose!',
+    'Coding is fun, challenging, and very rewarding.',
+    'What are you typing about today?',
+    'Speed, accuracy, and consistency matter the most!',
   ] as const,
 
   paragraphs: [
