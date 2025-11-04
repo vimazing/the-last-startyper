@@ -9,7 +9,7 @@ function App() {
   const { containerRef, gameStatus, scoreManager } = gameManager;
 
   useEffect(() => {
-    if (scoreManager.score === 10 && gameMode === "letters") {
+    if (scoreManager.score === 5 && gameMode === "letters") {
       setGameMode("words");
       gameManager.changeGameMode("words");
     }
