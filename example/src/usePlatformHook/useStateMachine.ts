@@ -20,7 +20,8 @@ export const useStateMachine = ({
   const lastTriggeredModeRef = useRef<GameMode | null>(null);
 
   useEffect(() => {
-    const { gameStatus, scoreManager } = gameManager;
+    const gameStatus = gameManager.gameStatus;
+    const scoreManager = gameManager.scoreManager;
 
     if (gameStatus !== "started") return;
 
@@ -62,7 +63,7 @@ export const useStateMachine = ({
       onModeChange(currentTransition.targetMode);
       gameManager.changeGameMode({ gameMode: currentTransition.targetMode });
     }
-  }, [scoreManager.currentCount, gameMode, gameManager, scenario, gameStatus, scoreManager.score]);
+  }, [gameManager.scoreManager.currentCount, gameMode, gameManager, scenario, gameManager.gameStatus, gameManager.scoreManager.score]);
 
   useEffect(() => {
     lastTransitionIndexRef.current = -1;
