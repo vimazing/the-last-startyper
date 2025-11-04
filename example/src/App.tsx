@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGame, type GameMode } from "@vimazing/typing-chud";
 import "@vimazing/typing-chud/game.css";
 import { useKeyBindings } from "./useKeyBindings";
@@ -7,6 +7,13 @@ function App() {
   const [gameMode, setGameMode] = useState<GameMode>("letters");
   const gameManager = useGame({ initialGameMode: gameMode }, useKeyBindings);
   const { containerRef, gameStatus, scoreManager } = gameManager;
+
+  useEffect(() => {
+    if (scoreManager.score === 10 && gameMode === "letters") {
+      setGameMode("words");
+      gameManager.changeGameMode("words");
+    }
+  }, [scoreManager.score, gameMode, gameManager]);
 
   const formatTime = (ms: number) => {
     const seconds = Math.floor(ms / 1000);
@@ -21,21 +28,20 @@ function App() {
         <h1 className="text-2xl font-bold text-center">Typing Chud</h1>
         <div className="flex gap-2 justify-center text-sm">
           {(['letters', 'words', 'sentences', 'paragraphs'] as const).map((mode) => (
-           <button
-               key={mode}
-               onClick={(e) => {
-                 setGameMode(mode);
-                 gameManager.changeGameMode(mode);
-                 e.currentTarget.blur(); // Remove focus from button
-               }}
-               className={`px-3 py-1 rounded capitalize font-medium transition ${
-                 gameMode === mode
-                   ? 'bg-blue-600 text-white'
-                   : 'bg-muted text-foreground hover:bg-blue-500 hover:text-white'
-               }`}
-             >
-               {mode}
-             </button>
+            <button
+              key={mode}
+              onClick={(e) => {
+                setGameMode(mode);
+                gameManager.changeGameMode(mode);
+                e.currentTarget.blur(); // Remove focus from button
+              }}
+              className={`px-3 py-1 rounded capitalize font-medium transition ${gameMode === mode
+                ? 'bg-blue-600 text-white'
+                : 'bg-muted text-foreground hover:bg-blue-500 hover:text-white'
+                }`}
+            >
+              {mode}
+            </button>
           ))}
         </div>
       </div>

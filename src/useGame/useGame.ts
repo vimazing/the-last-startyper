@@ -42,10 +42,7 @@ export function useGame(
 
   const changeGameMode = (mode: GameMode) => {
     setGameModeState(mode);
-    // Only quit if the game is actively running
-    if (gameStatusManager.gameStatus === 'started') {
-      gameStatusManager.quitGame();
-    }
+    // Don't quit - just switch modes and let game continue
   };
 
   // Set the game loop callback
