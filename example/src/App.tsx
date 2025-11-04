@@ -11,33 +11,56 @@ function App() {
    const gameManager = useGame({ gameMode }, useKeyBindings);
    const { containerRef, gameStatus, scoreManager } = gameManager;
    const lastTransitionIndexRef = useRef<number>(-1);
+   const triggeredScoreTransitionsRef = useRef<Set<number>>(new Set());
+   const lastTriggeredModeRef = useRef<GameMode | null>(null);
 
    useEffect(() => {
      if (gameStatus !== "started") return;
 
+     // Handle score-based transitions
+     if (scenario.scoreTransitions) {
+       const currentScore = scoreManager.score;
+       const nextTransition = scenario.scoreTransitions.find(
+         (t) => currentScore >= t.scoreThreshold && !triggeredScoreTransitionsRef.current.has(t.scoreThreshold)
+       );
+
+       if (nextTransition) {
+         triggeredScoreTransitionsRef.current.add(nextTransition.scoreThreshold);
+         setGameMode(nextTransition.targetMode);
+         gameManager.changeGameMode({ gameMode: nextTransition.targetMode });
+       }
+       return;
+     }
+
+     // Handle count-based transitions
+     if (!scenario.transitions) return;
+
+     // Skip if we already triggered a transition for this mode
+     if (lastTriggeredModeRef.current === gameMode) {
+       return;
+     }
+
      const currentTransitionIdx = scenario.transitions.findIndex((t) => t.fromMode === gameMode);
-     console.log(`[DEBUG] gameMode=${gameMode}, currentTransitionIdx=${currentTransitionIdx}, lastTransitionIndex=${lastTransitionIndexRef.current}`);
      
      if (currentTransitionIdx === -1 || currentTransitionIdx <= lastTransitionIndexRef.current) {
-       console.log(`[DEBUG] SKIPPING - already processed or no transition found`);
        return;
      }
 
      const currentTransition = scenario.transitions[currentTransitionIdx];
      const currentCount = scoreManager.currentCount;
      
-     console.log(`[DEBUG] currentCount=${currentCount}, threshold=${currentTransition.threshold}, lettersCompleted=${scoreManager.lettersCompleted}, wordsCompleted=${scoreManager.wordsCompleted}, sentencesCompleted=${scoreManager.sentencesCompleted}`);
-     
      if (currentCount >= currentTransition.threshold) {
-       console.log(`[DEBUG] TRIGGERING TRANSITION: ${currentTransition.fromMode} -> ${currentTransition.targetMode}`);
        lastTransitionIndexRef.current = currentTransitionIdx;
+       lastTriggeredModeRef.current = gameMode; // Remember we triggered from this mode
        setGameMode(currentTransition.targetMode);
        gameManager.changeGameMode({ gameMode: currentTransition.targetMode });
      }
-   }, [scoreManager.currentCount, gameMode, gameManager, scenario, gameStatus, scoreManager.lettersCompleted, scoreManager.wordsCompleted, scoreManager.sentencesCompleted]);
+   }, [scoreManager.currentCount, gameMode, gameManager, scenario, gameStatus, scoreManager.score]);
 
    useEffect(() => {
      lastTransitionIndexRef.current = -1;
+     triggeredScoreTransitionsRef.current.clear();
+     lastTriggeredModeRef.current = null;
    }, [scenarioId]);
 
   const formatTime = (ms: number) => {

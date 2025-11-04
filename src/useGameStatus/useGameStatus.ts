@@ -333,12 +333,7 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
 
   const setPendingOptions = (newOptions: GameOptions) => {
     pendingOptionsRef.current = newOptions;
-    
-    // Update currentGameMode immediately so getCurrentCount() returns the correct value
-    if (newOptions.gameMode) {
-      setCurrentGameMode(newOptions.gameMode);
-      gameModeRef.current = newOptions.gameMode;
-    }
+    // Don't update anything immediately - wait for applyPendingOptions
   };
 
    const applyPendingOptions = () => {
@@ -404,6 +399,10 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
      return 0;
    };
 
+   const hasPendingOptions = () => {
+     return pendingOptionsRef.current !== null;
+   };
+
    return {
      gameStatus,
      setGameStatus,
@@ -416,6 +415,7 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
      setGameLoopCallback,
      setGameMode,
      setPendingOptions,
+     hasPendingOptions,
      addCorrect,
      addMissed,
      addDeath,

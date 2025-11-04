@@ -135,6 +135,7 @@ export type GameStatusManager = {
    setGameLoopCallback: (callback: (deltaTime: number, letters: FallingLetter[]) => void) => void;
    setGameMode: (mode: GameMode) => void;
    setPendingOptions: (options: GameOptions) => void;
+   hasPendingOptions: () => boolean;
    addCorrect: () => void;
    addMissed: () => void;
    addDeath: () => void;

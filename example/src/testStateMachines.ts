@@ -7,16 +7,47 @@ export type ModeTransition = {
   description: string;
 };
 
+export type ScoreTransition = {
+  scoreThreshold: number;
+  targetMode: GameMode;
+  description: string;
+};
+
 export type TestScenario = {
   id: string;
   name: string;
   description: string;
   initialMode: GameMode;
-  transitions: ModeTransition[];
+  transitions?: ModeTransition[];
+  scoreTransitions?: ScoreTransition[];
 };
 
 export const testScenarios: Record<string, TestScenario> = {
-  progressive: {
+   scoreBasedProgression: {
+     id: 'scoreBasedProgression',
+     name: 'Score-Based Progression',
+     description: 'Change modes based on score: score 10 → words, score 50 → sentences, score 100 → paragraphs. Tests delayed application until current item completes.',
+     initialMode: 'letters',
+     scoreTransitions: [
+       {
+         scoreThreshold: 10,
+         targetMode: 'words',
+         description: 'At score 10, request switch to words',
+       },
+       {
+         scoreThreshold: 50,
+         targetMode: 'sentences',
+         description: 'At score 50, request switch to sentences',
+       },
+       {
+         scoreThreshold: 100,
+         targetMode: 'paragraphs',
+         description: 'At score 100, request switch to paragraphs',
+       },
+     ],
+   },
+
+   progressive: {
     id: 'progressive',
     name: 'Progressive Mode Ladder',
     description: 'Automatically progress through all modes: 10 letters → 10 words → 5 sentences → 3 paragraphs',
