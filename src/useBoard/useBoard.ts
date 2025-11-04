@@ -75,6 +75,7 @@ export function useBoard() {
   }, []);
 
   const renderBoard = (playerPosition: PlayerPosition, letters: any = [], shipState: ShipState = "normal", shipExplosionTime?: number, gameMode: GameMode = 'letters', lasers: Laser[] = []) => {
+    // Always update ship explosion time, even if it's 0
     if (shipExplosionTime !== undefined) {
       shipExplosionTimeRef.current = shipExplosionTime;
     }
@@ -93,9 +94,10 @@ export function useBoard() {
     const spaceshipX = playerPosition.x;
     const spaceshipY = SPACESHIP_Y;
 
-    if (shipStateRef.current === 'exploding') {
+    if (shipState === 'exploding') {
       // Enhanced explosion animation
-      const elapsed = performance.now() - shipExplosionTimeRef.current;
+      const explosionTime = shipExplosionTime || shipExplosionTimeRef.current || 0;
+      const elapsed = explosionTime > 0 ? performance.now() - explosionTime : 0;
       const progress = Math.min(elapsed / 500, 1); // Longer explosion (500ms)
       
       ctx.save();
