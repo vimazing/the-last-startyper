@@ -94,28 +94,127 @@ export function useBoard() {
     const spaceshipY = SPACESHIP_Y;
 
     if (shipStateRef.current === 'exploding') {
-      // Explosion animation
+      // Enhanced explosion animation
       const elapsed = performance.now() - shipExplosionTimeRef.current;
-      const progress = Math.min(elapsed / 300, 1);
-      const scale = 1 + progress * 1.5;
-      const opacity = 1 - progress;
-
+      const progress = Math.min(elapsed / 500, 1); // Longer explosion (500ms)
+      
       ctx.save();
       ctx.translate(spaceshipX, spaceshipY);
-      ctx.scale(scale, scale);
-      ctx.globalAlpha = opacity;
-
-      // Explosion particles
-      for (let i = 0; i < 12; i++) {
-        const angle = (i / 12) * Math.PI * 2;
-        const distance = progress * 40;
+      
+      // Draw ship fragments flying apart
+      const fragmentOpacity = Math.max(0, 1 - progress * 1.2);
+      ctx.globalAlpha = fragmentOpacity;
+      
+      // Left wing fragment
+      ctx.save();
+      ctx.translate(-progress * 30, -progress * 20);
+      ctx.rotate(-progress * Math.PI * 0.5);
+      ctx.fillStyle = "#4a90e2";
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-12, 8);
+      ctx.lineTo(-6, 8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      
+      // Right wing fragment
+      ctx.save();
+      ctx.translate(progress * 30, -progress * 20);
+      ctx.rotate(progress * Math.PI * 0.5);
+      ctx.fillStyle = "#4a90e2";
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(12, 8);
+      ctx.lineTo(6, 8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      
+      // Cockpit fragment (moving upward)
+      ctx.save();
+      ctx.translate(0, -progress * 40);
+      ctx.scale(1 - progress * 0.5, 1 - progress * 0.5);
+      const gradient = ctx.createRadialGradient(0, 0, 2, 0, 0, 6);
+      gradient.addColorStop(0, "#00ffff");
+      gradient.addColorStop(0.5, "#0088ff");
+      gradient.addColorStop(1, "#004488");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      
+      // Explosion burst effect
+      ctx.globalAlpha = 1;
+      
+      // Central explosion flash (bright at start, fades out)
+      if (progress < 0.3) {
+        const flashProgress = progress / 0.3;
+        const flashSize = 20 + flashProgress * 30;
+        const flashOpacity = 1 - flashProgress;
+        
+        const flashGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, flashSize);
+        flashGradient.addColorStop(0, `rgba(255, 255, 255, ${flashOpacity})`);
+        flashGradient.addColorStop(0.3, `rgba(255, 255, 0, ${flashOpacity * 0.8})`);
+        flashGradient.addColorStop(0.6, `rgba(255, 100, 0, ${flashOpacity * 0.5})`);
+        flashGradient.addColorStop(1, `rgba(255, 0, 0, 0)`);
+        
+        ctx.fillStyle = flashGradient;
+        ctx.beginPath();
+        ctx.arc(0, 0, flashSize, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Explosion particles (debris and sparks)
+      const particleOpacity = Math.max(0, 1 - progress * 0.8);
+      ctx.globalAlpha = particleOpacity;
+      
+      // Large debris particles
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2 + progress * Math.PI * 0.2;
+        const distance = progress * 60 + Math.sin(i * 13) * 20;
         const px = Math.cos(angle) * distance;
         const py = Math.sin(angle) * distance;
-
+        const size = 6 * (1 - progress * 0.5);
+        
+        ctx.fillStyle = i % 2 === 0 ? "#4a90e2" : "#7bb3ff";
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(progress * Math.PI * 2);
+        ctx.fillRect(-size/2, -size/2, size, size);
+        ctx.restore();
+      }
+      
+      // Small spark particles
+      for (let i = 0; i < 16; i++) {
+        const angle = (i / 16) * Math.PI * 2;
+        const speed = 80 + Math.sin(i * 7) * 40;
+        const distance = progress * speed;
+        const px = Math.cos(angle) * distance;
+        const py = Math.sin(angle) * distance;
+        
         ctx.fillStyle = i % 3 === 0 ? "#ffff00" : i % 3 === 1 ? "#ff6600" : "#ff0000";
         ctx.beginPath();
-        ctx.arc(px, py, 4, 0, Math.PI * 2);
+        ctx.arc(px, py, 3 * (1 - progress), 0, Math.PI * 2);
         ctx.fill();
+      }
+      
+      // Smoke trail effect
+      if (progress > 0.2) {
+        const smokeProgress = (progress - 0.2) / 0.8;
+        const smokeOpacity = 0.3 * (1 - smokeProgress);
+        ctx.globalAlpha = smokeOpacity;
+        
+        for (let i = 0; i < 5; i++) {
+          const smokeSize = 20 + i * 10 + smokeProgress * 30;
+          const smokeY = -smokeProgress * 20 - i * 5;
+          
+          ctx.fillStyle = "#666666";
+          ctx.beginPath();
+          ctx.arc(Math.sin(i) * 10, smokeY, smokeSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       ctx.restore();

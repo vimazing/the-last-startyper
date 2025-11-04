@@ -109,7 +109,7 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
             lettersRef.current = [];
             lastSpawnRef.current = performance.now();
             setShipState('normal');
-          }, 300);
+          }, 500); // Match the 500ms explosion animation
         }
       }
     });
