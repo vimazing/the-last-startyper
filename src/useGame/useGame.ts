@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import type { GameManager, GameOptions, KeyLogEntry, FallingLetter, GameMode } from "../types";
+import type { GameManager, GameOptions, KeyLogEntry, FallingLetter, GameMode, Laser } from "../types";
 import { useBoard } from "../useBoard";
 import { useCursor } from "../useCursor";
 import { useGameStatus } from "../useGameStatus";
@@ -17,22 +17,32 @@ export function useGame(
   const cursorManager = useCursor();
   const gameStatusManager = useGameStatus(undefined, gameMode);
 
-  // Wrap renderBoard to include player position
-  const renderBoardWrapped = (letters: any = []) => {
-    boardManager.renderBoard(cursorManager.position(), letters, gameStatusManager.shipState, gameStatusManager.shipExplosionTime, gameModeRef.current);
+  // Wrap renderBoard to include player position and lasers
+  const renderBoardWrapped = (letters: any = [], lasers: Laser[] = []) => {
+    boardManager.renderBoard(cursorManager.position(), letters, gameStatusManager.shipState, gameStatusManager.shipExplosionTime, gameModeRef.current, lasers);
   };
 
   // Game loop tick handler
-  const handleGameLoopTick = (deltaTime: number, letters: FallingLetter[]) => {
+  const handleGameLoopTick = (deltaTime: number, letters: FallingLetter[], lasers: Laser[] = []) => {
     const playerPos = cursorManager.position();
     gameStatusManager.updatePlayerX(playerPos.x);
 
-    // For words/letters, auto-track to falling letters
-    // For sentences/paragraphs, track to current character position
-    if (gameModeRef.current !== 'sentences' && gameModeRef.current !== 'paragraphs') {
+    // Handle ship tracking based on game mode
+    if (gameModeRef.current === 'letters') {
+      // Letters mode: track to letter position (original behavior)
       if (letters.length > 0) {
         const letter = letters[0];
         cursorManager.setTargetX(letter.x);
+      }
+      
+      cursorManager.moveTowardTarget(deltaTime);
+    } else if (gameModeRef.current === 'words') {
+      // Words mode: track to current character within word
+      if (letters.length > 0) {
+        const letter = letters[0];
+        // Use stored character position or fall back to word center
+        const targetX = letter.currentCharX || letter.x;
+        cursorManager.setTargetX(targetX);
       }
       
       cursorManager.moveTowardTarget(deltaTime);
@@ -49,7 +59,7 @@ export function useGame(
       cursorManager.moveTowardTarget(deltaTime);
     }
     
-    renderBoardWrapped(letters);
+    renderBoardWrapped(letters, lasers);
   };
 
   // Update gameMode when it changes (without recreating gameStatus state)

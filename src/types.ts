@@ -24,6 +24,17 @@ export type PlayerPosition = { x: number }; // pixel position 0-800
 export type LetterState = 'normal' | 'wrong' | 'exploding';
 export type ShipState = 'normal' | 'exploding';
 
+export type Laser = {
+  id: string;
+  startX: number; // Ship position
+  startY: number; // Ship Y
+  endX: number; // Target position (offset left/right for misses)
+  endY: number; // Target Y
+  startTime: number;
+  duration: number; // How long the laser is visible
+  hit: boolean; // True for hits (not implemented yet), false for misses
+};
+
 export type FallingLetter = {
   id: string;
   letter: string;

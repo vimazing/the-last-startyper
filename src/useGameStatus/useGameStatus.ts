@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import type { GameStatus, FallingLetter, ShipState, GameMode } from "../types";
+import type { GameStatus, FallingLetter, ShipState, GameMode, Laser } from "../types";
 import { getRandomWord } from "../wordLists";
 
 const LETTER_SPEEDS: Record<GameMode, number> = {
@@ -16,7 +16,7 @@ const CANVAS_WIDTH = 800;
 const SPACESHIP_Y = 600 - 40; // Position of the ship on canvas
 const COLLISION_THRESHOLD = 30; // Distance to trigger collision
 
-export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: FallingLetter[]) => void, gameMode: GameMode = 'letters') {
+export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: FallingLetter[], lasers: Laser[]) => void, gameMode: GameMode = 'letters') {
   const [gameStatus, setGameStatus] = useState<GameStatus>("waiting");
   const [shipState, setShipState] = useState<ShipState>("normal");
   const [shipExplosionTime, setShipExplosionTime] = useState(0);
@@ -27,6 +27,7 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
   const gameLoopRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
   const lettersRef = useRef<FallingLetter[]>([]);
+  const lasersRef = useRef<Laser[]>([]);
   const lastSpawnRef = useRef<number>(0);
   const playerXRef = useRef<number>(CANVAS_WIDTH / 2);
   const onGameLoopTickRef = useRef(onGameLoopTick);
@@ -94,10 +95,15 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
 
     // Remove letters that went off screen
     lettersRef.current = lettersRef.current.filter(letter => letter.y < 600);
+    
+    // Remove expired lasers
+    lasersRef.current = lasersRef.current.filter(laser => 
+      currentTime - laser.startTime < laser.duration
+    );
 
-    // Call tick callback if provided
+    // Call tick callback if provided (now with lasers)
     if (onGameLoopTickRef.current) {
-      onGameLoopTickRef.current(deltaTime, lettersRef.current);
+      onGameLoopTickRef.current(deltaTime, lettersRef.current, lasersRef.current);
     }
 
     // Continue loop
@@ -134,6 +140,23 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     if (isCorrect) {
       setScore(prev => prev + 1);
       setCorrect(prev => prev + 1);
+
+      // Create a laser that hits the target (green laser)
+      const targetX = currentLetter.currentCharX || currentLetter.x;
+      const targetY = currentLetter.y;
+      
+      const hitLaser: Laser = {
+        id: `laser-${performance.now()}`,
+        startX: playerXRef.current,
+        startY: SPACESHIP_Y - 20, // From ship's nose
+        endX: targetX,
+        endY: targetY,
+        startTime: performance.now(),
+        duration: 150, // Slightly faster for hits
+        hit: true
+      };
+      
+      lasersRef.current.push(hitLaser);
 
       const charIndex = (currentLetter.charIndex ?? 0) + 1;
       const fullText = currentLetter.fullText ?? currentLetter.letter;
@@ -184,6 +207,26 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
       setScore(prev => Math.max(0, prev - 1));
       setMissed(prev => prev + 1);
       
+      // Create a laser that misses (shoots left or right)
+      const missDirection = Math.random() > 0.5 ? 1 : -1; // Random left or right
+      const missOffset = 30 + Math.random() * 50; // 30-80 pixels off target
+      
+      const targetX = currentLetter.currentCharX || currentLetter.x;
+      const targetY = currentLetter.y;
+      
+      const newLaser: Laser = {
+        id: `laser-${performance.now()}`,
+        startX: playerXRef.current,
+        startY: SPACESHIP_Y - 20, // From ship's nose
+        endX: targetX + (missOffset * missDirection),
+        endY: targetY,
+        startTime: performance.now(),
+        duration: 200, // 200ms visibility
+        hit: false
+      };
+      
+      lasersRef.current.push(newLaser);
+      
       setTimeout(() => {
         if (currentLetter.state === 'wrong') {
           currentLetter.state = 'normal';
@@ -196,7 +239,7 @@ export function useGameStatus(onGameLoopTick?: (deltaTime: number, letters: Fall
     playerXRef.current = x;
   };
 
-  const setGameLoopCallback = (callback: (deltaTime: number, letters: FallingLetter[]) => void) => {
+  const setGameLoopCallback = (callback: (deltaTime: number, letters: FallingLetter[], lasers: Laser[]) => void) => {
     onGameLoopTickRef.current = callback;
   };
 

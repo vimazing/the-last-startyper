@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import type { PlayerPosition, ShipState, GameMode } from "../types";
+import type { PlayerPosition, ShipState, GameMode, Laser } from "../types";
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
@@ -47,7 +47,7 @@ export function useBoard() {
     canvasRef.current = canvas;
   }, []);
 
-  const renderBoard = (playerPosition: PlayerPosition, letters: any = [], shipState: ShipState = "normal", shipExplosionTime?: number, gameMode: GameMode = 'letters') => {
+  const renderBoard = (playerPosition: PlayerPosition, letters: any = [], shipState: ShipState = "normal", shipExplosionTime?: number, gameMode: GameMode = 'letters', lasers: Laser[] = []) => {
     if (shipExplosionTime !== undefined) {
       shipExplosionTimeRef.current = shipExplosionTime;
     }
@@ -186,6 +186,57 @@ export function useBoard() {
       ctx.closePath();
       ctx.fill();
     }
+
+    // Draw lasers
+    lasers.forEach((laser: Laser) => {
+      const progress = (performance.now() - laser.startTime) / laser.duration;
+      if (progress <= 1) {
+        // Laser beam effect
+        ctx.save();
+        
+        // Create gradient for laser beam
+        const gradient = ctx.createLinearGradient(laser.startX, laser.startY, laser.endX, laser.endY);
+        
+        if (laser.hit) {
+          // Green laser for hits (future feature)
+          gradient.addColorStop(0, "rgba(0, 255, 0, 0.8)");
+          gradient.addColorStop(0.5, "rgba(100, 255, 100, 1)");
+          gradient.addColorStop(1, "rgba(0, 255, 0, 0.3)");
+        } else {
+          // Red laser for misses
+          gradient.addColorStop(0, "rgba(255, 0, 0, 0.8)");
+          gradient.addColorStop(0.5, "rgba(255, 100, 100, 1)");
+          gradient.addColorStop(1, "rgba(255, 0, 0, 0.3)");
+        }
+        
+        // Draw laser beam with fade effect
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 3 * (1 - progress * 0.5); // Gets thinner as it fades
+        ctx.globalAlpha = 1 - progress * 0.7; // Fades out
+        
+        ctx.beginPath();
+        ctx.moveTo(laser.startX, laser.startY);
+        ctx.lineTo(laser.endX, laser.endY);
+        ctx.stroke();
+        
+        // Add glow effect
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = laser.hit ? "#00ff00" : "#ff0000";
+        ctx.stroke();
+        
+        // Draw impact burst at the end
+        if (progress > 0.5) {
+          const burstProgress = (progress - 0.5) * 2;
+          const burstSize = 10 * burstProgress;
+          ctx.fillStyle = laser.hit ? "rgba(0, 255, 0, 0.5)" : "rgba(255, 0, 0, 0.5)";
+          ctx.beginPath();
+          ctx.arc(laser.endX, laser.endY, burstSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        
+        ctx.restore();
+      }
+    });
 
     // Draw falling letters with state effects
     const isSentenceMode = gameMode === 'sentences' || gameMode === 'paragraphs';
@@ -400,6 +451,9 @@ export function useBoard() {
            const startX = letterX - totalWidth / 2;
            let currentX = startX;
            
+           // For words mode, calculate position of current character
+           const isWordMode = gameMode === 'words';
+           
            // Draw completed characters in green
            if (charIndex > 0) {
              ctx.fillStyle = "#00ff00";
@@ -410,8 +464,13 @@ export function useBoard() {
            
            // Draw current character in yellow
            ctx.fillStyle = "#ffff00";
-           ctx.fillText(fullText[charIndex], currentX, letter.y);
-           currentX += ctx.measureText(fullText[charIndex]).width;
+           const currentChar = fullText[charIndex];
+           // Store position for ship tracking in words mode
+           if (isWordMode) {
+             letter.currentCharX = currentX + ctx.measureText(currentChar).width / 2;
+           }
+           ctx.fillText(currentChar, currentX, letter.y);
+           currentX += ctx.measureText(currentChar).width;
            
            // Draw remaining characters in white
            if (charIndex + 1 < fullText.length) {
