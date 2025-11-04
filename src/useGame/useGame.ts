@@ -69,10 +69,10 @@ export function useGame(
     gameStatusManager.setGameMode(gameMode);
   }, [gameMode]);
 
-  const changeGameMode = (newOptions: GameOptions) => {
-    setOptions(newOptions);
-    // Don't quit - just switch modes and let game continue
-  };
+   const changeGameMode = (newOptions: GameOptions) => {
+     setOptions(newOptions);
+     gameStatusManager.setPendingOptions(newOptions);
+   };
 
   // Set the game loop callback
   useEffect(() => {

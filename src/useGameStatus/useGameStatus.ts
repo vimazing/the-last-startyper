@@ -23,6 +23,7 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
   // Store options in refs so they can be accessed in the game loop
   const downwardSpeedRef = useRef<number | undefined>(downwardSpeed);
   const wordListRef = useRef<string[] | undefined>(wordList);
+  const pendingOptionsRef = useRef<GameOptions | null>(null);
   
   // Update refs when options change
   useEffect(() => {
@@ -33,13 +34,17 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
     wordListRef.current = wordList;
   }, [wordList]);
   
-  const [gameStatus, setGameStatus] = useState<GameStatus>("waiting");
-  const shipStateRef = useRef<ShipState>("normal");
-  const shipExplosionTimeRef = useRef<number>(0);
-  const [score, setScore] = useState(0);
-  const [correct, setCorrect] = useState(0);
-  const [missed, setMissed] = useState(0);
-  const [deaths, setDeaths] = useState(0);
+   const [gameStatus, setGameStatus] = useState<GameStatus>("waiting");
+   const shipStateRef = useRef<ShipState>("normal");
+   const shipExplosionTimeRef = useRef<number>(0);
+   const [score, setScore] = useState(0);
+   const [correct, setCorrect] = useState(0);
+   const [missed, setMissed] = useState(0);
+   const [deaths, setDeaths] = useState(0);
+   const [lettersCompleted, setLettersCompleted] = useState(0);
+   const [wordsCompleted, setWordsCompleted] = useState(0);
+   const [sentencesCompleted, setSentencesCompleted] = useState(0);
+   const [paragraphsCompleted, setParagraphsCompleted] = useState(0);
   const gameLoopRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
   const lettersRef = useRef<FallingLetter[]>([]);
@@ -132,6 +137,8 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
             lastSpawnRef.current = performance.now();
             shipStateRef.current = 'normal';
             shipExplosionTimeRef.current = 0;
+            // Apply pending options after death
+            applyPendingOptions();
           }, 500); // Match the 500ms explosion animation
         }
       }
@@ -265,16 +272,19 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
         }
       }
 
-      // Check if word is complete
-      if (charIndex >= fullText.length) {
-        // Word complete - explode and clear
-        currentLetter.state = 'exploding';
-        currentLetter.stateStartTime = performance.now();
-        
-        setTimeout(() => {
-          lettersRef.current = [];
-          lastSpawnRef.current = 0;
-        }, 300);
+       // Check if word is complete
+       if (charIndex >= fullText.length) {
+         // Word complete - explode and clear
+         currentLetter.state = 'exploding';
+         currentLetter.stateStartTime = performance.now();
+         trackCompletion(gameModeRef.current);
+         
+         setTimeout(() => {
+           lettersRef.current = [];
+           lastSpawnRef.current = 0;
+           // Apply pending options after letter completes
+           applyPendingOptions();
+         }, 300);
       } else {
         // More characters to type - advance to next character
         currentLetter.charIndex = charIndex;
@@ -319,6 +329,32 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
     gameModeRef.current = mode;
   };
 
+  const setPendingOptions = (newOptions: GameOptions) => {
+    pendingOptionsRef.current = newOptions;
+  };
+
+  const applyPendingOptions = () => {
+    if (!pendingOptionsRef.current) return;
+    
+    const pending = pendingOptionsRef.current;
+    pendingOptionsRef.current = null;
+    
+    // Update game mode
+    if (pending.gameMode) {
+      gameModeRef.current = pending.gameMode;
+    }
+    
+    // Update speed ref
+    if (pending.downwardSpeed !== undefined) {
+      downwardSpeedRef.current = pending.downwardSpeed;
+    }
+    
+    // Update word list ref
+    if (pending.wordList !== undefined) {
+      wordListRef.current = pending.wordList;
+    }
+  };
+
   const addCorrect = () => {
     setScore(prev => prev + 1);
     setCorrect(prev => prev + 1);
@@ -329,29 +365,62 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
     setMissed(prev => prev + 1);
   };
 
-  const addDeath = () => {
-    setDeaths(prev => prev + 1);
-  };
+   const addDeath = () => {
+     setDeaths(prev => prev + 1);
+   };
 
-  return {
-    gameStatus,
-    setGameStatus,
-    startGame,
-    quitGame,
-    handleTypedLetter,
-    shipState: shipStateRef.current,  // Return ref value for immediate updates
-    shipExplosionTime: shipExplosionTimeRef.current,  // Return ref value for immediate updates
-    updatePlayerX,
-    setGameLoopCallback,
-    setGameMode,
-    addCorrect,
-    addMissed,
-    addDeath,
-    score,
-    correct,
-    missed,
-    deaths,
-  };
-}
+   const trackCompletion = (mode: GameMode) => {
+     if (mode === 'letters') {
+       setLettersCompleted(prev => prev + 1);
+     } else if (mode === 'words') {
+       setWordsCompleted(prev => prev + 1);
+     } else if (mode === 'sentences') {
+       setSentencesCompleted(prev => prev + 1);
+     } else if (mode === 'paragraphs') {
+       setParagraphsCompleted(prev => prev + 1);
+     }
+   };
+
+   const getCurrentCount = (): number => {
+     const mode = gameModeRef.current;
+     if (mode === 'letters') {
+       return lettersCompleted;
+     } else if (mode === 'words') {
+       return wordsCompleted;
+     } else if (mode === 'sentences') {
+       return sentencesCompleted;
+     } else if (mode === 'paragraphs') {
+       return paragraphsCompleted;
+     }
+     return 0;
+   };
+
+   return {
+     gameStatus,
+     setGameStatus,
+     startGame,
+     quitGame,
+     handleTypedLetter,
+     shipState: shipStateRef.current,  // Return ref value for immediate updates
+     shipExplosionTime: shipExplosionTimeRef.current,  // Return ref value for immediate updates
+     updatePlayerX,
+     setGameLoopCallback,
+     setGameMode,
+     setPendingOptions,
+     addCorrect,
+     addMissed,
+     addDeath,
+     trackCompletion,
+     score,
+     correct,
+     missed,
+     deaths,
+     lettersCompleted,
+     wordsCompleted,
+     sentencesCompleted,
+     paragraphsCompleted,
+     getCurrentCount,
+   };
+ }
 
 export type UseGameStatusType = ReturnType<typeof useGameStatus>;

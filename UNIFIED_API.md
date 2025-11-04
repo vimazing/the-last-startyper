@@ -132,6 +132,7 @@ type GameManager = {
   getKeyLog: () => KeyLogEntry[];
   
   // Optional: Game-specific additions
+  changeGameMode?: (options: GameOptions) => void;  // Runtime option changes
   // [additional fields as needed]
 };
 ```
@@ -201,11 +202,67 @@ type ScoreManager = {
 };
 ```
 
+**typing-chud Content Tracking:**
+
+All content types are tracked independently throughout the game:
+
+```typescript
+type ScoreManager = {
+  // ... core fields
+  
+  lettersCompleted: number;      // Total letters typed
+  wordsCompleted: number;        // Total words typed
+  sentencesCompleted: number;    // Total sentences typed
+  paragraphsCompleted: number;   // Total paragraphs typed
+  currentCount: number;          // Count for current game mode
+};
+```
+
+**Platform Mode Switching Behavior:**
+
+When platform calls `changeGameMode()`:
+- All historical counts remain (letters stay at 10 after switching to words)
+- `currentCount` reflects the mode-specific count (0 for words if no words typed yet)
+- Each mode accumulates independently
+
 **Scoring Requirements:**
 - Score range: 0-1000 (capped)
 - Score calculated on game-won
 - Based on time and keystrokes (minimum)
 - Can include game-specific penalties/bonuses
+
+---
+
+## Runtime Game Control
+
+Some games support dynamic option changes during gameplay via `changeGameMode()`:
+
+```typescript
+// Change to a different mode mid-game
+game.changeGameMode({ gameMode: 'words', downwardSpeed: 75 });
+```
+
+### Delayed Mode Switching (typing-chud)
+
+Mode changes are deferred to respect current gameplay:
+- Changes are stored as "pending options"
+- Applied AFTER current letter/word/sentence/paragraph completes
+- OR when player dies (text hits ship)
+- Multiple rapid calls overwrite with latest options
+- Ensures smooth transitions without interrupting input
+
+**Flow:**
+```
+Platform calls changeGameMode()
+   ↓
+Options stored as pending
+   ↓
+Player finishes current letter/word
+   ↓
+Pending options applied
+   ↓
+Next letter spawns with new settings
+```
 
 ---
 
@@ -232,6 +289,14 @@ type GameOptions = {
   timeLimit?: number;
 };
 
+// typing-chud (Unified Platform Control)
+type GameOptions = {
+  gameMode?: 'letters' | 'words' | 'sentences' | 'paragraphs';
+  downwardSpeed?: number;           // px/s (mode-agnostic)
+  boardDimensions?: [number, number]; // [width, height]
+  wordList?: string[];              // Custom word/sentence/paragraph list
+};
+
 // vim-snake (hypothetical)
 type GameOptions = {
   boardSize?: number;
@@ -244,6 +309,13 @@ type GameOptions = {
 - Always provide sensible defaults
 - Make most options optional
 - Use consistent naming (e.g., `timeLimit` always in seconds)
+
+**Platform Control (typing-chud):**
+- Platforms have full control over game behavior via `GameOptions`
+- `downwardSpeed` is mode-agnostic (single value for all modes)
+- `wordList` allows custom content across all modes
+- `changeGameMode(options)` allows runtime mode switching
+- Mode changes respect current gameplay (apply after letter/word completes or death)
 
 ### 2. Scoring Implementation
 
@@ -449,6 +521,11 @@ type ScoreManager = {
 - Additional metrics for display
 - Difficulty multipliers
 
+**typing-chud Content Tracking:**
+- Tracks all content types independently (letters, words, sentences, paragraphs)
+- Preserves historical counts when mode switches
+- `currentCount` reflects only the current game mode count
+
 ### useGameStatus
 
 **Purpose:** Manage game lifecycle state machine.
@@ -472,6 +549,8 @@ type GameStatusManager = {
   quitGame: () => void;
   
   // Optional: togglePause, reset, etc.
+  // Optional: setPendingOptions (for runtime changes)
+  setPendingOptions?: (options: GameOptions) => void;
 };
 ```
 
@@ -854,6 +933,16 @@ interface UnifiedGame {
 ---
 
 ## Version History
+
+**v2.1** (2025-11-04)
+- Added delayed mode switching for runtime game control
+- Documented `changeGameMode()` for platforms
+- Added `GameOptions` for platform control (gameMode, downwardSpeed, wordList)
+- Clarified pending options pattern for smooth transitions
+- Updated GameManager interface with optional runtime control methods
+- Added content tracking per mode (letters, words, sentences, paragraphs)
+- `currentCount` reflects mode-specific completion count
+- Historical counts preserved across mode switches
 
 **v2.0** (2025-01-22)
 - Rewritten for game-agnostic specification

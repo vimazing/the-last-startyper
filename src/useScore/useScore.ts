@@ -14,14 +14,19 @@ export function useScore(gameStatusManager: any): ScoreManager {
     return () => clearInterval(interval);
   }, [gameStatusManager.gameStatus]);
 
-  return {
-    timeValue,
-    totalKeystrokes: 0, // TODO: Track keystrokes from keyboard input
-    score: gameStatusManager.score,
-    correct: gameStatusManager.correct,
-    missed: gameStatusManager.missed,
-    deaths: gameStatusManager.deaths,
-  };
-}
+   return {
+     timeValue,
+     totalKeystrokes: 0, // TODO: Track keystrokes from keyboard input
+     score: gameStatusManager.score,
+     correct: gameStatusManager.correct,
+     missed: gameStatusManager.missed,
+     deaths: gameStatusManager.deaths,
+     lettersCompleted: gameStatusManager.lettersCompleted,
+     wordsCompleted: gameStatusManager.wordsCompleted,
+     sentencesCompleted: gameStatusManager.sentencesCompleted,
+     paragraphsCompleted: gameStatusManager.paragraphsCompleted,
+     currentCount: gameStatusManager.getCurrentCount(),
+   };
+ }
 
 export type UseScoreType = ReturnType<typeof useScore>;

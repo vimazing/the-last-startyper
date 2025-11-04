@@ -105,38 +105,50 @@ export type CursorManager = {
 // ============================================================================
 
 export type ScoreManager = {
-  timeValue: number;
-  totalKeystrokes: number;
-  score: number;
-  correct: number;
-  missed: number;
-  deaths: number;
-};
+   timeValue: number;
+   totalKeystrokes: number;
+   score: number;
+   correct: number;
+   missed: number;
+   deaths: number;
+   lettersCompleted: number;
+   wordsCompleted: number;
+   sentencesCompleted: number;
+   paragraphsCompleted: number;
+   currentCount: number; // Count for current game mode
+ };
 
 // ============================================================================
 // Manager Interfaces - Game Status
 // ============================================================================
 
 export type GameStatusManager = {
-  gameStatus: GameStatus;
-  setGameStatus: (status: GameStatus) => void;
-  startGame: () => void;
-  quitGame: () => void;
-  level: number;
-  shipState: ShipState;
-  shipExplosionTime: number;
-  updatePlayerX: (x: number) => void;
-  handleTypedLetter: (letter: string) => void;
-  setGameLoopCallback: (callback: (deltaTime: number, letters: FallingLetter[]) => void) => void;
-  setGameMode: (mode: GameMode) => void;
-  addCorrect: () => void;
-  addMissed: () => void;
-  addDeath: () => void;
-  score: number;
-  correct: number;
-  missed: number;
-  deaths: number;
-};
+   gameStatus: GameStatus;
+   setGameStatus: (status: GameStatus) => void;
+   startGame: () => void;
+   quitGame: () => void;
+   level: number;
+   shipState: ShipState;
+   shipExplosionTime: number;
+   updatePlayerX: (x: number) => void;
+   handleTypedLetter: (letter: string) => void;
+   setGameLoopCallback: (callback: (deltaTime: number, letters: FallingLetter[]) => void) => void;
+   setGameMode: (mode: GameMode) => void;
+   setPendingOptions: (options: GameOptions) => void;
+   addCorrect: () => void;
+   addMissed: () => void;
+   addDeath: () => void;
+   trackCompletion: (mode: GameMode) => void;
+   score: number;
+   correct: number;
+   missed: number;
+   deaths: number;
+   lettersCompleted: number;
+   wordsCompleted: number;
+   sentencesCompleted: number;
+   paragraphsCompleted: number;
+   getCurrentCount: () => number;
+ };
 
 // ============================================================================
 // Manager Interfaces - Key Tracking
