@@ -70,10 +70,10 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
        const spawnWidth = CANVAS_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
        const spawnX = isCenteredMode ? CANVAS_WIDTH / 2 : (MARGIN_LEFT + Math.random() * spawnWidth);
        
-       // Sentences and paragraphs spawn offscreen from top; letters/words spawn in top half
+       // Sentences and paragraphs spawn at top; letters/words spawn in top half
        let randomY: number;
        if (isCenteredMode) {
-         randomY = -100 - Math.random() * 100; // Offscreen: -200 to -100
+         randomY = 0; // Start at top of screen
        } else {
          randomY = Math.random() * 150; // Between 0-150 (top half of screen)
        }
