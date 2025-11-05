@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { GameMode, GameManager } from "../../../src";
+import type { GameMode, GameManager } from "@vimazing/the-last-startyper";
 import type { TestScenario } from "./testStateMachines";
 
 interface UseStateMachineProps {
