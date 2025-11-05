@@ -520,10 +520,10 @@ export function useBoard() {
                // Calculate Y offset based on number of lines (center the text block vertically)
                const centerOffset = (numLines - 1) / 2;
                
-               // During transition, adjust positions and sizes
-               let lineY = letter.y + (lineSpacing * (visualIndex - centerOffset));
-               let lineFontSize = fontSize * basePerspectiveFactors[visualIndex];
-               let lineOpacity = 1.0 - (visualIndex * 0.1);
+                // During transition, adjust positions and sizes
+                let lineY = letter.y + (lineSpacing * (visualIndex - centerOffset));
+                let lineFontSize = fontSize * basePerspectiveFactors[visualIndex];
+                let lineOpacity = 1.0;
                
                // If this line just completed and is exploding
                if (isTransitioning && completedLines[completedLines.length - 1] === lineIndex && transitionProgress < 0.6) {
@@ -558,9 +558,8 @@ export function useBoard() {
                    const targetSize = fontSize * basePerspectiveFactors[newVisualIndex];
                    lineFontSize = lineFontSize + (targetSize - lineFontSize) * transitionProgress;
                    
-                   // Adjust opacity
-                   const targetOpacity = 1.0 - (newVisualIndex * 0.1);
-                   lineOpacity = lineOpacity + (targetOpacity - lineOpacity) * transitionProgress;
+                   // Opacity stays at full value
+                   // (no adjustment needed)
                  }
                }
               
