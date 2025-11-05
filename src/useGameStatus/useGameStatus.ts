@@ -5,8 +5,8 @@ import { getRandomWord } from "../wordLists";
 const LETTER_SPEEDS: Record<GameMode, number> = {
   letters: 100,
   words: 50,
-  sentences: 25,
-  paragraphs: 15, // Even slower for longer text
+  sentences: 20,
+  paragraphs: 10,
 };
 const SPAWN_INTERVAL = 1000; // ms between letter spawns
 const MAX_ACTIVE_LETTERS = 1; // Only one letter on screen at a time
