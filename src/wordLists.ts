@@ -37,6 +37,10 @@ export const wordLists = {
   ] as const,
 };
 
+// Track current index for sequential selection in sentences/paragraphs
+let sentenceIndex = 0;
+let paragraphIndex = 0;
+
 export function getRandomItem<T>(array: readonly T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
@@ -45,5 +49,20 @@ export function getRandomWord(gameMode: 'letters' | 'words' | 'sentences' | 'par
   // Use custom list if provided, otherwise use default for the game mode
   // Letters mode always uses default alphabet
   const list = customList && gameMode !== 'letters' ? customList : wordLists[gameMode];
+  
+  // For sentences and paragraphs, use sequential selection instead of random
+  if (gameMode === 'sentences') {
+    const result = String(list[sentenceIndex % list.length]);
+    sentenceIndex++;
+    return result;
+  }
+  
+  if (gameMode === 'paragraphs') {
+    const result = String(list[paragraphIndex % list.length]);
+    paragraphIndex++;
+    return result;
+  }
+  
+  // For letters and words, keep randomization
   return String(getRandomItem(list));
 }
