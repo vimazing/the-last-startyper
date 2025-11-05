@@ -29,13 +29,6 @@ export const usePlatformHook = (gameManager: GameManager) => {
         gameManager.quitGame();
         return;
       }
-
-       // handle letter and punctuation typing during game
-       if (gameManager.gameStatus === "started") {
-         if (ev.key.length === 1 && /[a-zA-Z0-9.,!?;:'"()\-/& ]/.test(ev.key)) {
-           gameManager.handleTypedLetter(ev.key);
-         }
-       }
     };
 
     window.addEventListener("keydown", handler);

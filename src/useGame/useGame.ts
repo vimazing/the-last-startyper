@@ -79,12 +79,26 @@ export function useGame(
     gameStatusManager.setGameLoopCallback(handleGameLoopTick);
   }, []);
 
-  // Initial render on mount
-  useEffect(() => {
-    renderBoardWrapped();
-  }, []);
+   // Initial render on mount
+   useEffect(() => {
+     renderBoardWrapped();
+   }, []);
 
-  const scoreManager = useScore(gameStatusManager);
+   // Handle character input for typing
+   useEffect(() => {
+     const handleCharacterInput = (ev: KeyboardEvent) => {
+       if (gameStatusManager.gameStatus === "started") {
+         if (ev.key.length === 1 && /[a-zA-Z0-9.,!?;:'"()\-/& ]/.test(ev.key)) {
+           gameStatusManager.handleTypedLetter(ev.key);
+         }
+       }
+     };
+
+     window.addEventListener("keydown", handleCharacterInput);
+     return () => window.removeEventListener("keydown", handleCharacterInput);
+   }, [gameStatusManager.gameStatus]);
+
+   const scoreManager = useScore(gameStatusManager);
 
   const gameManager: GameManager = {
     containerRef: boardManager.containerRef,
