@@ -15,6 +15,63 @@ const MARGIN_RIGHT = 50; // Safe margin from right edge
 const CANVAS_WIDTH = 800;
 const SPACESHIP_Y = 600 - 40; // Position of the ship on canvas
 
+// Calculate optimal number of lines based on text length (must match useBoard.ts)
+const calculateLineCount = (text: string): number => {
+  const length = text.length;
+  if (length < 30) return 2;
+  if (length < 80) return 3;
+  if (length < 150) return 4;
+  if (length < 250) return 5;
+  return 6;
+};
+
+// Helper function to break text into multiple lines at good breaking points (must match useBoard.ts)
+const breakTextIntoLines = (text: string, numLines: number = 2): string[] => {
+  if (numLines === 2) {
+    const midpoint = Math.ceil(text.length / 2);
+    
+    // Try to find a space near the midpoint to break naturally
+    let breakPoint = midpoint;
+    for (let i = midpoint; i >= midpoint - 10 && i >= 0; i--) {
+      if (text[i] === ' ') {
+        breakPoint = i;
+        break;
+      }
+    }
+    
+    // Keep the space at the end of line1 for typing
+    const line1 = text.substring(0, breakPoint + 1); // Include the space
+    const line2 = text.substring(breakPoint + 1).trim(); // Start after the space
+    
+    return [line1, line2];
+  }
+  
+  // For 3+ lines, divide text evenly
+  const lines: string[] = [];
+  const charsPerLine = Math.ceil(text.length / numLines);
+  let startIdx = 0;
+  
+  for (let i = 0; i < numLines - 1; i++) {
+    let endIdx = startIdx + charsPerLine;
+    
+    // Find nearest space to break at
+    for (let j = endIdx; j >= endIdx - 10 && j >= startIdx; j--) {
+      if (text[j] === ' ') {
+        endIdx = j;
+        break;
+      }
+    }
+    
+    lines.push(text.substring(startIdx, endIdx + 1)); // Include the space
+    startIdx = endIdx + 1;
+  }
+  
+  // Last line gets remaining text
+  lines.push(text.substring(startIdx).trim());
+  
+  return lines;
+};
+
 export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: FallingLetter[], lasers: Laser[]) => void, options: GameOptions = {}) {
   const gameMode = options.gameMode ?? 'letters';
   const downwardSpeed = options.downwardSpeed;
@@ -222,23 +279,16 @@ export function useGameStatus(_onGameLoopTick?: (deltaTime: number, letters: Fal
       
       // Handle line transitions for sentences and paragraphs
       if (gameModeRef.current === 'paragraphs' && fullText.length > 20) {
-        // Calculate line breaks for 4-line paragraphs
-        const numLines = 4;
-        const charsPerLine = Math.ceil(fullText.length / numLines);
-        const lineBreakPoints: number[] = [];
+        // Calculate line breaks using dynamic line count (must match rendering)
+        const numLines = calculateLineCount(fullText);
+        const lines = breakTextIntoLines(fullText, numLines);
         
-        let startIdx = 0;
-        for (let i = 0; i < numLines - 1; i++) {
-          let endIdx = startIdx + charsPerLine;
-          // Find nearest space to break at
-          for (let j = endIdx; j >= endIdx - 10 && j >= startIdx; j--) {
-            if (fullText[j] === ' ') {
-              endIdx = j;
-              break;
-            }
-          }
-          lineBreakPoints.push(endIdx);
-          startIdx = endIdx + 1;
+        // Calculate line break points (end of each line)
+        const lineBreakPoints: number[] = [];
+        let totalChars = 0;
+        for (let i = 0; i < lines.length - 1; i++) {
+          totalChars += lines[i].length;
+          lineBreakPoints.push(totalChars - 1); // Point to the last character of the line
         }
         
         // Check if we just completed a line

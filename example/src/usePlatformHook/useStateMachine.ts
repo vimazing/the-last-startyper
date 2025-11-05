@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
-import type { GameMode, GameManager } from "@vimazing/the-last-startyper";
+import type { GameMode, GameManager, GameOptions } from "@vimazing/the-last-startyper";
 import type { TestScenario } from "./testStateMachines";
+import { greatFallsParagraphs } from "./greatFallsContent";
 
 interface UseStateMachineProps {
   gameManager: GameManager;
@@ -8,6 +9,11 @@ interface UseStateMachineProps {
   scenario: TestScenario;
   onModeChange: (newMode: GameMode) => void;
 }
+
+const getGameOptionsForMode = (mode: GameMode): GameOptions => ({
+  gameMode: mode,
+  ...(mode === 'paragraphs' && { wordList: greatFallsParagraphs }),
+});
 
 export const useStateMachine = ({
   gameManager,
@@ -32,11 +38,11 @@ export const useStateMachine = ({
         (t) => currentScore >= t.scoreThreshold && !triggeredScoreTransitionsRef.current.has(t.scoreThreshold)
       );
 
-      if (nextTransition) {
-        triggeredScoreTransitionsRef.current.add(nextTransition.scoreThreshold);
-        onModeChange(nextTransition.targetMode);
-        gameManager.changeGameMode({ gameMode: nextTransition.targetMode });
-      }
+       if (nextTransition) {
+         triggeredScoreTransitionsRef.current.add(nextTransition.scoreThreshold);
+         onModeChange(nextTransition.targetMode);
+         gameManager.changeGameMode(getGameOptionsForMode(nextTransition.targetMode));
+       }
       return;
     }
 
@@ -57,12 +63,12 @@ export const useStateMachine = ({
     const currentTransition = scenario.transitions[currentTransitionIdx];
     const currentCount = scoreManager.currentCount;
 
-    if (currentCount >= currentTransition.threshold) {
-      lastTransitionIndexRef.current = currentTransitionIdx;
-      lastTriggeredModeRef.current = gameMode;
-      onModeChange(currentTransition.targetMode);
-      gameManager.changeGameMode({ gameMode: currentTransition.targetMode });
-    }
+     if (currentCount >= currentTransition.threshold) {
+       lastTransitionIndexRef.current = currentTransitionIdx;
+       lastTriggeredModeRef.current = gameMode;
+       onModeChange(currentTransition.targetMode);
+       gameManager.changeGameMode(getGameOptionsForMode(currentTransition.targetMode));
+     }
   }, [gameManager.scoreManager.currentCount, gameMode, gameManager, scenario, gameManager.gameStatus, gameManager.scoreManager.score]);
 
   useEffect(() => {

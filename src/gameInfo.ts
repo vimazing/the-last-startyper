@@ -25,7 +25,7 @@ export const gameInfo = {
       'Letters: Single characters fall one at a time',
       'Words: Full words fall and must be typed character by character',
       'Sentences: Multi-line sentences with perspective effect',
-      'Paragraphs: 4-line paragraphs with advanced perspective and line transitions',
+      'Paragraphs: 6-line paragraphs with advanced perspective and line transitions',
     ],
   },
 

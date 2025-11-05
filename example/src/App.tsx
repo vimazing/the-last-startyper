@@ -1,14 +1,21 @@
 import { useState } from "react";
-import { useGame, type GameMode } from "@vimazing/the-last-startyper";
+import { useGame, type GameMode, type GameOptions } from "@vimazing/the-last-startyper";
 import "@vimazing/the-last-startyper/game.css";
 import { usePlatformHook, useStateMachine, getScenario, getScenarioNames } from "./usePlatformHook";
+import { greatFallsParagraphs } from "./usePlatformHook/greatFallsContent";
 
 function App() {
-   const [scenarioId, setScenarioId] = useState<string>("progressive");
-   const scenario = getScenario(scenarioId);
-   const [gameMode, setGameMode] = useState<GameMode>(scenario.initialMode);
-   const gameManager = useGame({ gameMode }, usePlatformHook);
-   const { containerRef, gameStatus, scoreManager } = gameManager;
+    const [scenarioId, setScenarioId] = useState<string>("progressive");
+    const scenario = getScenario(scenarioId);
+    const [gameMode, setGameMode] = useState<GameMode>(scenario.initialMode);
+    
+    const getGameOptions = (mode: GameMode): GameOptions => ({
+      gameMode: mode,
+      ...(mode === 'paragraphs' && { wordList: greatFallsParagraphs }),
+    });
+    
+    const gameManager = useGame(getGameOptions(gameMode), usePlatformHook);
+    const { containerRef, gameStatus, scoreManager } = gameManager;
 
    useStateMachine({
      gameManager,
@@ -34,12 +41,12 @@ function App() {
              <label className="text-xs text-muted-foreground">Test Scenario:</label>
              <select
                value={scenarioId}
-               onChange={(e) => {
-                 setScenarioId(e.target.value);
-                 const newScenario = getScenario(e.target.value);
-                 setGameMode(newScenario.initialMode);
-                 gameManager.changeGameMode({ gameMode: newScenario.initialMode });
-               }}
+                onChange={(e) => {
+                  setScenarioId(e.target.value);
+                  const newScenario = getScenario(e.target.value);
+                  setGameMode(newScenario.initialMode);
+                  gameManager.changeGameMode(getGameOptions(newScenario.initialMode));
+                }}
                className="w-full px-2 py-1 rounded text-sm bg-muted text-foreground border border-muted-foreground"
              >
                {getScenarioNames().map(({ id, name }) => (
@@ -54,14 +61,14 @@ function App() {
            <div className="text-center">
              <div className="text-xs text-muted-foreground mb-2">Mode Selection:</div>
              <div className="flex gap-2 justify-center text-sm">
-               {(['letters', 'words', 'sentences', 'paragraphs'] as const).map((mode) => (
-                 <button
-                   key={mode}
-                   onClick={(e) => {
-                     setGameMode(mode);
-                     gameManager.changeGameMode({ gameMode: mode });
-                     e.currentTarget.blur();
-                   }}
+                {(['letters', 'words', 'sentences', 'paragraphs'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={(e) => {
+                      setGameMode(mode);
+                      gameManager.changeGameMode(getGameOptions(mode));
+                      e.currentTarget.blur();
+                    }}
                    className={`px-3 py-1 rounded capitalize font-medium transition ${gameMode === mode
                      ? 'bg-blue-600 text-white'
                      : 'bg-muted text-foreground hover:bg-blue-500 hover:text-white'

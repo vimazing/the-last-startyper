@@ -51,7 +51,7 @@ Full words fall from the top. Type each character of the word sequentially.
 Multi-line sentences with perspective effect. Continue typing through line breaks.
 
 ### Paragraphs
-4-line paragraphs with advanced perspective and smooth line transitions.
+6-line paragraphs with advanced perspective and smooth line transitions.
 
 ## API
 
