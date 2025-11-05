@@ -1,6 +1,6 @@
 {
   "name": "@vimazing/the-last-startyper",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A fast-paced typing game with dynamic mode switching. Type falling text (letters, words, sentences, paragraphs) before it reaches your ship.",
   "author": "André Padez <andre.padez@gmail.com>",
   "keywords": [
